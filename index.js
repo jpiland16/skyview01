@@ -4,7 +4,7 @@ function loaded() {
     const sky = document.createElement("div")
     sky.classList.add("sky-holder")
 
-    const meridianCount = 1
+    const meridianCount = 10
     const sepDegrees = 180 / meridianCount
     for (let i = 0; i < meridianCount; i++) {
         const meridian = document.createElement("div")
