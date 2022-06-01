@@ -1,8 +1,3 @@
-:root {
-    --size: 500px;
-    --border-thickness: 1px;
-}
-
 input[type=range] {
     width: 100%
 }
@@ -19,35 +14,4 @@ table, tr, td {
 td:first-of-type {
     padding-right: 10px;
     padding-bottom: 4px;
-}
-
-div.sky-blocking-plane {
-    width: var(--size);
-    height: var(--size);
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    z-index: 1;
-    transform-style: preserve-3d;
-}
-
-div.sky-holder {
-    width: var(--size);
-    height: var(--size);
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    transform-style: preserve-3d;
-}
-
-div.sky-meridian {
-    background-color: white;
-    width: calc(var(--size) - 2 * var(--border-thickness));
-    height: calc(var(--size) - 2 * var(--border-thickness));
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    border-radius: 100%;
-    border: var(--border-thickness) solid blue;
-    transform-style: preserve-3d;
 }

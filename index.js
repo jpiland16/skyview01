@@ -1,23 +1,139 @@
+const SV_GREAT_CIRCLE_SIZE = 400
+const SV_GREAT_CIRCLE_BORDER = 1
+const SV_MERIDIAN_COUNT = 12
+
+// MATH //
+
+/**
+ * @param {number} i
+ * @param {number} n
+ * See: https://stackoverflow.com/questions/14997165/fastest-way-to-get-a-positive-modulo-in-c-c
+ */
+function positiveModulo(i, n) {
+    return (i % n + n) % n
+}
+
+
+
+//////////
+
+class SkyViewState {
+    /**
+     * @param {CanvasRenderingContext2D} ctx
+     */
+    constructor(ctx) {
+        this.rotation = 0 // radians
+        this.ctx = ctx
+        this.pointerLocked = false
+    }
+}
+
 function loaded() {
-    const hostDiv = document.getElementById("blocker")
+    /** @type {HTMLCanvasElement} */
+    const canvas = document.getElementById("sky")
+    const ctx = canvas.getContext("2d")
+    const svs = new SkyViewState(ctx)
+    updateCanvas(svs)
 
-    const sky = document.createElement("div")
-    sky.classList.add("sky-holder")
+    // addSlider("Rotation", -360, 360, 0, (deg) => {
+    //     const rad = deg * Math.PI / 180
+    //     svs.rotation = rad
+    //     updateCanvas(svs)
+    // })
 
-    const meridianCount = 10
-    const sepDegrees = 180 / meridianCount
-    for (let i = 0; i < meridianCount; i++) {
-        const meridian = document.createElement("div")
-        const rot = i * sepDegrees
-        meridian.classList.add("sky-meridian")
-        meridian.style.transform = `rotateY(${rot}deg)`
-        sky.appendChild(meridian)
-    } 
+    canvas.onclick = function() {
+        canvas.requestPointerLock();
+    };
+    document.addEventListener('pointerlockchange', (e) => {
+        svs.pointerLocked = (document.pointerLockElement === canvas)
+    } , false)
 
-    hostDiv.appendChild(sky)
-    addSlider("rotation", 0, 360, 0, (d) => {
-        sky.style.transform = `rotateY(${d}deg)`
-    })
+    document.addEventListener('mousemove', (e) => {
+        onMouseMove(svs, e)
+    }, false)
+}
+
+/**
+ * @param {SkyViewState} svs
+ * @param {MouseEvent} e
+ */
+function onMouseMove(svs, e) {
+    if (svs.pointerLocked) {
+        svs.rotation -= e.movementX / 100
+        updateCanvas(svs)
+    }
+}
+
+/**
+ * @param {SkyViewState} svs
+ */
+function updateCanvas(svs) {
+    clearCanvas(svs.ctx)
+    drawMeridians(svs)
+    drawEarthOutline(svs)
+}
+
+/**
+ * @param {SkyViewState} svs
+ */
+function drawEarthOutline(svs) {
+    const ctx = svs.ctx
+    ctx.beginPath()
+    ctx.ellipse(
+        SV_GREAT_CIRCLE_SIZE / 2, 
+        SV_GREAT_CIRCLE_SIZE / 2, 
+        SV_GREAT_CIRCLE_SIZE / 2 - 2 * SV_GREAT_CIRCLE_BORDER, 
+        SV_GREAT_CIRCLE_SIZE / 2 - 2 * SV_GREAT_CIRCLE_BORDER, 
+        0, 0, 2 * Math.PI
+    );
+    ctx.stroke()
+}
+
+/**
+ * @param {SkyViewState} svs
+ * @param {number} size
+ * @param {number} count
+ */
+function drawMeridians(svs) {
+    const ctx = svs.ctx
+    const rot = svs.rotation
+    const radianSep = 2 * Math.PI / SV_MERIDIAN_COUNT
+
+    for (let i = 0; i < SV_MERIDIAN_COUNT; i++) {
+        // Draw ellipse
+        ctx.beginPath();
+        const meridianAngle = rot + radianSep * i
+        if (positiveModulo(meridianAngle, 2 * Math.PI) < Math.PI) {
+            const minorAxisScale = Math.cos(meridianAngle)
+            if (minorAxisScale < 0) {
+                ctx.ellipse(
+                    SV_GREAT_CIRCLE_SIZE / 2, 
+                    SV_GREAT_CIRCLE_SIZE / 2, 
+                 - (SV_GREAT_CIRCLE_SIZE / 2 - 2 * SV_GREAT_CIRCLE_BORDER) 
+                        * minorAxisScale, 
+                    SV_GREAT_CIRCLE_SIZE / 2 - 2 * SV_GREAT_CIRCLE_BORDER, 
+                    0, - Math.PI / 2, Math.PI / 2
+                );
+            } else {
+                ctx.ellipse(
+                    SV_GREAT_CIRCLE_SIZE / 2, 
+                    SV_GREAT_CIRCLE_SIZE / 2, 
+                   (SV_GREAT_CIRCLE_SIZE / 2 - 2 * SV_GREAT_CIRCLE_BORDER) 
+                        * minorAxisScale, 
+                    SV_GREAT_CIRCLE_SIZE / 2 - 2 * SV_GREAT_CIRCLE_BORDER, 
+                    0, Math.PI / 2, 3 * Math.PI / 2
+                );
+            }
+        }
+        ctx.stroke();
+    }
+}
+
+/**
+ * @param {CanvasRenderingContext2D} ctx
+ */
+function clearCanvas(ctx) {
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 }
 
 /**
