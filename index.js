@@ -3,6 +3,7 @@ const SV_GREAT_CIRCLE_BORDER = 1
 const SV_MERIDIAN_COUNT = 4
 const SV_PARALLEL_COUNT = 7
 const SV_MOVEMENT_SCALE = 100
+const SV_KEY_MOVEMENT_SCALE = 25
 
 //// MATH ///
 // #region //
@@ -352,6 +353,7 @@ class SkyViewState {
         this.quaternion = Quaternion.identity()
         this.ctx = ctx
         this.pointerLocked = false
+        this.needsUpdate = true
         /** @type {SkyObject[]} */
         this.objects = []
     }
@@ -374,6 +376,8 @@ function loaded() {
     const ctx = canvas.getContext("2d")
     const svs = new SkyViewState(ctx)
 
+    const keyStates = {}
+
     window.svs = svs
 
     createMeridians(svs)
@@ -386,7 +390,12 @@ function loaded() {
     svs.addObject(new SkyRadius(new Vector(1, 0, 0).scale(
         SV_GREAT_CIRCLE_SIZE / 2), "blue"))
 
-    updateCanvas(svs)
+    function animate() {
+        handlePressedKeys(keyStates, svs)
+        updateCanvas(svs)
+        window.requestAnimationFrame(animate)
+    }
+    window.requestAnimationFrame(animate)
 
     canvas.onclick = function() {
         canvas.requestPointerLock();
@@ -398,6 +407,66 @@ function loaded() {
     document.addEventListener('mousemove', (e) => {
         onMouseMove(svs, e)
     }, false)
+
+    document.addEventListener('keyup', (e) => keyStates[e.key] = false, false)
+    document.addEventListener('keydown', (e) => keyStates[e.key] = true, false)
+    document.addEventListener('keypress', (e) => handleKeyPress(e, svs), false)
+}
+
+/**
+ * @param {KeyboardEvent} e
+ * @param {SkyViewState} svs
+ */
+function handleKeyPress(e, svs) {
+    if (e.key === "0") {
+        svs.quaternion = Quaternion.identity()
+        svs.needsUpdate = true
+    }
+}
+
+/**
+ * @param {Object<string, boolean>} keyStates
+ * @param {SkyViewState} svs
+ */
+function handlePressedKeys(keyStates, svs) {
+    if (svs.pointerLocked) {
+        if (keyStates[","] && !keyStates["."]) {
+            const zRotationQuaternion = Quaternion.fromAxisAngle(
+                0, 0, 1, 1 / SV_KEY_MOVEMENT_SCALE)
+            svs.quaternion = svs.quaternion.multiply(zRotationQuaternion)
+            svs.needsUpdate = true
+        }  
+        if (keyStates["."] && !keyStates[","]) {
+            const zRotationQuaternion = Quaternion.fromAxisAngle(
+                0, 0, 1, - 1 / SV_KEY_MOVEMENT_SCALE)
+            svs.quaternion = svs.quaternion.multiply(zRotationQuaternion)
+            svs.needsUpdate = true
+        }
+        if (keyStates["ArrowUp"] && !keyStates["ArrowDown"]) {
+            const xRotationQuaternion = Quaternion.fromAxisAngle(
+                1, 0, 0, - 1 / SV_KEY_MOVEMENT_SCALE)
+            svs.quaternion = svs.quaternion.multiply(xRotationQuaternion)
+            svs.needsUpdate = true
+        } 
+        if (keyStates["ArrowDown"] && !keyStates["ArrowUp"]) {
+            const xRotationQuaternion = Quaternion.fromAxisAngle(
+                1, 0, 0, 1 / SV_KEY_MOVEMENT_SCALE)
+            svs.quaternion = svs.quaternion.multiply(xRotationQuaternion)
+            svs.needsUpdate = true
+        }
+        if (keyStates["ArrowLeft"] && !keyStates["ArrowRight"]) {
+            const yRotationQuaternion = Quaternion.fromAxisAngle(
+                0, 1, 0, 1 / SV_KEY_MOVEMENT_SCALE)
+            svs.quaternion = svs.quaternion.multiply(yRotationQuaternion)
+            svs.needsUpdate = true
+        } 
+        if (keyStates["ArrowRight"] && !keyStates["ArrowLeft"]) {
+            const yRotationQuaternion = Quaternion.fromAxisAngle(
+                0, 1, 0, - 1 / SV_KEY_MOVEMENT_SCALE)
+            svs.quaternion = svs.quaternion.multiply(yRotationQuaternion)
+            svs.needsUpdate = true
+        }
+    }
 }
 
 /**
@@ -415,7 +484,7 @@ function onMouseMove(svs, e) {
 
         svs.quaternion = svs.quaternion.multiply(
             xRotationQuaternion).multiply(yRotationQuaternion)
-        updateCanvas(svs)
+        svs.needsUpdate = true
     }
 
 }
@@ -424,9 +493,12 @@ function onMouseMove(svs, e) {
  * @param {SkyViewState} svs
  */
 function updateCanvas(svs) {
-    clearCanvas(svs.ctx)
-    svs.drawAll()
-    drawEarthOutline(svs)
+    if (svs.needsUpdate) {
+        clearCanvas(svs.ctx)
+        svs.drawAll()
+        drawEarthOutline(svs)
+        svs.needsUpdate = false
+    }
 }
 
 /**
