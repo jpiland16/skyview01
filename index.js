@@ -1,8 +1,7 @@
-const SV_CANVAS_SIZE = 500
 const SV_GREAT_CIRCLE_SIZE = 500
 const SV_GREAT_CIRCLE_BORDER = 1
 const SV_MERIDIAN_COUNT = 4
-const SV_PARALLEL_COUNT = 7
+const SV_PARALLEL_COUNT = 11
 const SV_MOVEMENT_SCALE = 100
 const SV_KEY_MOVEMENT_SCALE = 25
 const SV_WHEEL_SCALE = 0.95
@@ -227,21 +226,22 @@ class CrossHairs extends SkyObject {
      */
     draw(svs) {
         const ctx = svs.ctx
-        const center = SV_CANVAS_SIZE / 2
+        const xCenter = svs.centerX
+        const yCenter = svs.centerY
         ctx.beginPath()
         // UP
-        ctx.moveTo(center, center - SV_CROSSHAIR_SPACE)
-        ctx.lineTo(center, center - SV_CROSSHAIR_SIZE)
+        ctx.moveTo(xCenter, yCenter - SV_CROSSHAIR_SPACE)
+        ctx.lineTo(xCenter, yCenter - SV_CROSSHAIR_SIZE)
         // DOWN
-        ctx.moveTo(center, center + SV_CROSSHAIR_SPACE)
-        ctx.lineTo(center, center + SV_CROSSHAIR_SIZE)
+        ctx.moveTo(xCenter, yCenter + SV_CROSSHAIR_SPACE)
+        ctx.lineTo(xCenter, yCenter + SV_CROSSHAIR_SIZE)
         // LEFT
-        ctx.moveTo(center - SV_CROSSHAIR_SPACE, center)
-        ctx.lineTo(center - SV_CROSSHAIR_SIZE, center)
+        ctx.moveTo(xCenter - SV_CROSSHAIR_SPACE, yCenter)
+        ctx.lineTo(xCenter - SV_CROSSHAIR_SIZE, yCenter)
         // RIGHT
-        ctx.moveTo(center + SV_CROSSHAIR_SPACE, center)
-        ctx.lineTo(center + SV_CROSSHAIR_SIZE, center)
-        ctx.strokeStyle = "black"
+        ctx.moveTo(xCenter + SV_CROSSHAIR_SPACE, yCenter)
+        ctx.lineTo(xCenter + SV_CROSSHAIR_SIZE, yCenter)
+        ctx.strokeStyle = svs.pointerLocked ? "red" : "gray"
         ctx.lineWidth = 0.5
         ctx.stroke()
     }
@@ -257,19 +257,19 @@ class EarthCircle extends SkyObject {
         const ctx = svs.ctx
         ctx.beginPath()
         ctx.ellipse(
-            SV_CANVAS_SIZE / 2, 
-            SV_CANVAS_SIZE / 2, 
-            svs.sizeBorderless, 
-            svs.sizeBorderless, 
+            svs.centerX, 
+            svs.centerY, 
+            svs.sizeBorderless + 1, 
+            svs.sizeBorderless + 1, 
             0, 0, 2 * Math.PI
         );
         ctx.strokeStyle = "black"
-        ctx.lineWidth = 1
+        ctx.lineWidth = 2
         ctx.stroke()
     }
 }
 
-class SkyGreatCircle extends SkyObject {
+class SkyMeridian extends SkyObject {
     /**
      * @param {Vector} normal
      */
@@ -314,8 +314,8 @@ class SkyGreatCircle extends SkyObject {
         ctx.lineWidth = 1
         ctx.beginPath()
         ctx.ellipse(
-            SV_CANVAS_SIZE / 2, 
-            SV_CANVAS_SIZE / 2, 
+            svs.centerX, 
+            svs.centerY, 
             minorAxisLength, 
             majorAxisLength, 
             angle,
@@ -397,13 +397,13 @@ class SkyParallel extends SkyObject {
         ctx.lineWidth = 1
         ctx.beginPath()
         ctx.ellipse(
-            SV_CANVAS_SIZE / 2 + positionTransformed.x, 
-            SV_CANVAS_SIZE / 2 + positionTransformed.y, 
+            svs.centerX + positionTransformed.x, 
+            svs.centerY + positionTransformed.y, 
             minorAxisLength, 
             majorAxisLength, 
             angle, startAngle, stopAngle
         );
-        ctx.strokeStyle = "orange"
+        ctx.strokeStyle = "black"
         ctx.lineWidth = 1
         ctx.stroke()
     }
@@ -430,10 +430,10 @@ class SkyRadius extends SkyObject {
         const endpointTransformed = this.endpoint.transformByQuaternion(
             svs.quaternion).scale(svs.sizeBorderless)
         ctx.beginPath()
-        ctx.moveTo(SV_CANVAS_SIZE / 2, SV_CANVAS_SIZE / 2)
+        ctx.moveTo(svs.centerX, svs.centerY)
         ctx.lineTo(
-            endpointTransformed.x + SV_CANVAS_SIZE / 2, 
-            endpointTransformed.y + SV_CANVAS_SIZE / 2
+            endpointTransformed.x + svs.centerX, 
+            endpointTransformed.y + svs.centerY
         )
         if (endpointTransformed.z > 0) ctx.lineWidth = 3; else ctx.lineWidth = 1
         ctx.strokeStyle = this.color
@@ -465,6 +465,14 @@ class SkyViewState {
 
     get size() {
         return SV_GREAT_CIRCLE_SIZE / 2 * this.zoom
+    }
+
+    get centerX() {
+        return this.ctx.canvas.width / 2
+    }
+
+    get centerY() {   
+        return this.ctx.canvas.height / 2
     }
 
     drawAll() {
@@ -501,11 +509,18 @@ function loaded() {
     }
     window.requestAnimationFrame(animate)
 
+    function onResize() {
+        canvas.width = window.innerWidth
+        canvas.height = window.innerHeight
+        svs.needsUpdate = true
+    }
+
     canvas.onclick = function() {
         canvas.requestPointerLock();
     };
     document.addEventListener('pointerlockchange', (e) => {
         svs.pointerLocked = (document.pointerLockElement === canvas)
+        svs.needsUpdate = true
     } , false)
 
     document.addEventListener('mousemove', (e) => {
@@ -516,6 +531,9 @@ function loaded() {
     document.addEventListener('keydown', (e) => keyStates[e.key] = true, false)
     document.addEventListener('keypress', (e) => handleKeyPress(e, svs), false)
     document.addEventListener("wheel", (e) => handleScroll(e, svs), false)
+    window.addEventListener('resize', (e) => onResize(), false)
+
+    onResize()
 }
 
 /**
@@ -594,7 +612,7 @@ function handlePressedKeys(keyStates, svs) {
  */
 function handleScroll(e, svs) {
     if (svs.pointerLocked && e.deltaY != 0) {
-        const scalingFactor = e.deltaY > 0 ? 1 / SV_WHEEL_SCALE : SV_WHEEL_SCALE
+        const scalingFactor = e.deltaY < 0 ? 1 / SV_WHEEL_SCALE : SV_WHEEL_SCALE
         svs.zoom *= scalingFactor
         svs.zoom = Math.min(Math.max(SV_MIN_ZOOM, svs.zoom), SV_MAX_ZOOM)
         svs.needsUpdate = true
@@ -642,7 +660,7 @@ function createMeridians(svs) {
     for (let i = 0; i < SV_MERIDIAN_COUNT; i++) {
         const angle = radSep * i
         const normal = new Vector(Math.cos(angle), 0, Math.sin(angle))
-        svs.addObject(new SkyGreatCircle(normal))
+        svs.addObject(new SkyMeridian(normal))
     }
 }
 
@@ -666,39 +684,8 @@ function clearCanvas(ctx) {
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 }
 
-/**
- * @param {string} label
- * @param {number} min - minimum value of slider
- * @param {number} max - maximum value of slider
- * @param {number} value - initial value of slider
- * @param {function} onChange - function called when value changes
- * @param {number} step - if 0, continuous, otherwise discrete
- */
-function addSlider(label, min, max, value, 
-        onChange = () => {}, step = 0) {
-
-    const hostDiv = document.getElementById("sliders")
-    const tr = document.createElement("tr")
-    const td1 = document.createElement("td")
-    const td2 = document.createElement("td")
-    
-    td1.innerText = label
-
-    const slider = document.createElement("input")
-
-    slider.type = "range"
-    slider.min = min
-    slider.max = max
-    slider.value = value
-    if (step !== 0) slider.step = step; else step = "any"
-    slider.oninput = (e) => onChange(e.target.value)
-
-    hostDiv.appendChild(tr)
-    tr.appendChild(td1)
-    tr.appendChild(td2)
-    td2.appendChild(slider)
-}
-
 function stat(t) {
     document.getElementById("stat").innerText = t.toString()
 }
+
+window.stat = stat
