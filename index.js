@@ -1,6 +1,6 @@
 const SV_GREAT_CIRCLE_SIZE = 450
 const SV_GREAT_CIRCLE_BORDER = 1
-const SV_MERIDIAN_COUNT = 2
+const SV_MERIDIAN_COUNT = 4
 const SV_MOVEMENT_SCALE = 100
 
 //// MATH ///
@@ -66,6 +66,17 @@ class Vector {
     dotProduct(o) {
         return this.x * o.x + this.y * o.y + this.z * o.z
     }
+
+    /**
+     * Calculates the cosine distance between this vector and `o`.
+     * 
+     * @param {Vector} o
+     */
+    getCosineDistance(o) {
+        const dotProduct = this.dotProduct(o)
+        const lengthProduct = this.length * o.length
+        return dotProduct / lengthProduct
+    }
     
     /**
      * Gets the angle between this vector and `o`.
@@ -73,9 +84,7 @@ class Vector {
      * @param {Vector} o
      */
     getAngleTo(o) {
-        const dotProduct = this.dotProduct(o)
-        const lengthProduct = this.length * o.length
-        return Math.acos(dotProduct / lengthProduct)
+        return Math.acos(this.getCosineDistance(o))
     }
 }
 
@@ -197,15 +206,13 @@ class SkyObject {
     }
 }
 
-class SkyEllipse extends SkyObject {
+class SkyCircle extends SkyObject {
     /**
-     * @param {Vector} majorAxis
-     * @param {Vector} minorAxis
+     * @param {Vector} normal
      */
-    constructor(majorAxis, minorAxis) {
+    constructor(normal) {
         super()
-        this.majorAxis = majorAxis
-        this.minorAxis = minorAxis
+        this.normal = normal
     }
 
     /**
@@ -217,15 +224,22 @@ class SkyEllipse extends SkyObject {
 
         const ctx = svs.ctx
 
-        const majorAxisTransformed = this.majorAxis.transformByQuaternion(
-            svs.quaternion).collapseToXY()
-        const minorAxisTransformed = this.minorAxis.transformByQuaternion(
-            svs.quaternion).collapseToXY()
+        const normalTransformed = this.normal.transformByQuaternion(
+            svs.quaternion)
 
-        const majorAxisLength = majorAxisTransformed.length
-        const minorAxisLength = minorAxisTransformed.length
-        const angle = majorAxisTransformed.getAngleTo(this.majorAxis)
+        const majorAxisLength = 1 * (
+            SV_GREAT_CIRCLE_SIZE / 2 - SV_GREAT_CIRCLE_BORDER)
+        const minorAxisLength = Math.abs(normalTransformed.getCosineDistance(
+            new Vector(0, 0, 1))) * (
+                SV_GREAT_CIRCLE_SIZE / 2 - SV_GREAT_CIRCLE_BORDER)
         
+        const normalCollapsed = normalTransformed.collapseToXY()
+
+        const angle = normalCollapsed.length === 0 ? 0 :
+            normalCollapsed.getAngleTo(new Vector(-1, 0, 0))
+
+        const negator = (normalCollapsed.y > 0) ? -1 : 1
+
         ctx.lineWidth = 1
         ctx.beginPath()
         ctx.ellipse(
@@ -233,7 +247,7 @@ class SkyEllipse extends SkyObject {
             SV_GREAT_CIRCLE_SIZE / 2, 
             minorAxisLength, 
             majorAxisLength, 
-            angle, 0, 2 * Math.PI
+            negator * positiveModulo(angle, Math.PI), 0, 2 * Math.PI
         );
         ctx.strokeStyle = "black"
         ctx.lineWidth = 1
@@ -386,49 +400,10 @@ function createMeridians(svs) {
 
     for (let i = 0; i < SV_MERIDIAN_COUNT; i++) {
         const angle = radSep * i
-        const majorAxis = new Vector(0, 1, 0).scale(
+        const normal = new Vector(Math.cos(angle), 0, Math.sin(angle)).scale(
             SV_GREAT_CIRCLE_SIZE / 2 - 2 * SV_GREAT_CIRCLE_BORDER)
-        const minorAxis = new Vector(Math.cos(angle), 0, Math.sin(angle)).scale(
-            SV_GREAT_CIRCLE_SIZE / 2 - 2 * SV_GREAT_CIRCLE_BORDER)
-        svs.addObject(new SkyEllipse(majorAxis, minorAxis))
-    }
-}
-
-/**
- * @param {SkyViewState} svs
- */
-function drawMeridians(svs) {
-    const ctx = svs.ctx
-    const { axis, angle } = svs.quaternion.toAxisAngle()
-    const radianSep = 2 * Math.PI / SV_MERIDIAN_COUNT
-
-    for (let i = 0; i < SV_MERIDIAN_COUNT; i++) {
-        // Draw ellipse
-        ctx.beginPath();
-        const meridianAngle = angle + radianSep * i
-        if (positiveModulo(meridianAngle, 2 * Math.PI) < Math.PI) {
-            const minorAxisScale = Math.cos(meridianAngle)
-            if (minorAxisScale < 0) {
-                ctx.ellipse(
-                    SV_GREAT_CIRCLE_SIZE / 2, 
-                    SV_GREAT_CIRCLE_SIZE / 2, 
-                 - (SV_GREAT_CIRCLE_SIZE / 2 - 2 * SV_GREAT_CIRCLE_BORDER) 
-                        * minorAxisScale, 
-                    SV_GREAT_CIRCLE_SIZE / 2 - 2 * SV_GREAT_CIRCLE_BORDER, 
-                    0, - Math.PI / 2, Math.PI / 2
-                );
-            } else {
-                ctx.ellipse(
-                    SV_GREAT_CIRCLE_SIZE / 2, 
-                    SV_GREAT_CIRCLE_SIZE / 2, 
-                   (SV_GREAT_CIRCLE_SIZE / 2 - 2 * SV_GREAT_CIRCLE_BORDER) 
-                        * minorAxisScale, 
-                    SV_GREAT_CIRCLE_SIZE / 2 - 2 * SV_GREAT_CIRCLE_BORDER, 
-                    0, Math.PI / 2, 3 * Math.PI / 2
-                );
-            }
-        }
-        ctx.stroke();
+        // svs.addObject(new SkyRadius(normal))
+        svs.addObject(new SkyCircle(normal))
     }
 }
 
