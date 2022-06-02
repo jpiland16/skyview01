@@ -1,9 +1,16 @@
-const SV_GREAT_CIRCLE_SIZE = 450
+const SV_CANVAS_SIZE = 500
+const SV_GREAT_CIRCLE_SIZE = 500
 const SV_GREAT_CIRCLE_BORDER = 1
 const SV_MERIDIAN_COUNT = 4
 const SV_PARALLEL_COUNT = 7
 const SV_MOVEMENT_SCALE = 100
 const SV_KEY_MOVEMENT_SCALE = 25
+const SV_WHEEL_SCALE = 0.95
+const SV_KEY_ZOOM_SCALE = 0.98
+const SV_MIN_ZOOM = 0.5
+const SV_MAX_ZOOM = Infinity
+const SV_CROSSHAIR_SIZE = 35
+const SV_CROSSHAIR_SPACE = 7
 
 //// MATH ///
 // #region //
@@ -212,6 +219,56 @@ class SkyObject {
     }
 }
 
+class CrossHairs extends SkyObject {
+    /**
+     * @override
+     * 
+     * @param {SkyViewState} svs 
+     */
+    draw(svs) {
+        const ctx = svs.ctx
+        const center = SV_CANVAS_SIZE / 2
+        ctx.beginPath()
+        // UP
+        ctx.moveTo(center, center - SV_CROSSHAIR_SPACE)
+        ctx.lineTo(center, center - SV_CROSSHAIR_SIZE)
+        // DOWN
+        ctx.moveTo(center, center + SV_CROSSHAIR_SPACE)
+        ctx.lineTo(center, center + SV_CROSSHAIR_SIZE)
+        // LEFT
+        ctx.moveTo(center - SV_CROSSHAIR_SPACE, center)
+        ctx.lineTo(center - SV_CROSSHAIR_SIZE, center)
+        // RIGHT
+        ctx.moveTo(center + SV_CROSSHAIR_SPACE, center)
+        ctx.lineTo(center + SV_CROSSHAIR_SIZE, center)
+        ctx.strokeStyle = "black"
+        ctx.lineWidth = 0.5
+        ctx.stroke()
+    }
+}
+
+class EarthCircle extends SkyObject {
+    /**
+     * @override
+     * 
+     * @param {SkyViewState} svs 
+     */
+    draw(svs) {
+        const ctx = svs.ctx
+        ctx.beginPath()
+        ctx.ellipse(
+            SV_CANVAS_SIZE / 2, 
+            SV_CANVAS_SIZE / 2, 
+            svs.sizeBorderless, 
+            svs.sizeBorderless, 
+            0, 0, 2 * Math.PI
+        );
+        ctx.strokeStyle = "black"
+        ctx.lineWidth = 1
+        ctx.stroke()
+    }
+}
+
 class SkyGreatCircle extends SkyObject {
     /**
      * @param {Vector} normal
@@ -231,13 +288,11 @@ class SkyGreatCircle extends SkyObject {
         const ctx = svs.ctx
 
         const normalTransformed = this.normal.transformByQuaternion(
-            svs.quaternion)
+            svs.quaternion).scale(svs.sizeBorderless)
 
-        const majorAxisLength = 1 * (
-            SV_GREAT_CIRCLE_SIZE / 2 - SV_GREAT_CIRCLE_BORDER)
+        const majorAxisLength = 1 * (svs.sizeBorderless)
         const minorAxisLength = Math.abs(normalTransformed.getCosineDistance(
-            new Vector(0, 0, 1))) * (
-                SV_GREAT_CIRCLE_SIZE / 2 - SV_GREAT_CIRCLE_BORDER)
+            new Vector(0, 0, 1))) * (svs.sizeBorderless)
         
         const normalCollapsed = normalTransformed.collapseToXY()
 
@@ -259,8 +314,8 @@ class SkyGreatCircle extends SkyObject {
         ctx.lineWidth = 1
         ctx.beginPath()
         ctx.ellipse(
-            SV_GREAT_CIRCLE_SIZE / 2, 
-            SV_GREAT_CIRCLE_SIZE / 2, 
+            SV_CANVAS_SIZE / 2, 
+            SV_CANVAS_SIZE / 2, 
             minorAxisLength, 
             majorAxisLength, 
             angle,
@@ -296,15 +351,15 @@ class SkyParallel extends SkyObject {
             svs.quaternion)
 
         const majorAxisLength = Math.cos(this.latitude) * (
-            SV_GREAT_CIRCLE_SIZE / 2 - SV_GREAT_CIRCLE_BORDER)
+            svs.sizeBorderless - SV_GREAT_CIRCLE_BORDER)
         const minorAxisLength = Math.abs(normalTransformed.getCosineDistance(
             new Vector(0, 0, 1))) * Math.cos(this.latitude) * (
-                SV_GREAT_CIRCLE_SIZE / 2 - SV_GREAT_CIRCLE_BORDER)
+                svs.sizeBorderless - SV_GREAT_CIRCLE_BORDER)
         
         const normalCollapsed = normalTransformed.collapseToXY()
 
         const positionTransformed = this.positionVector.transformByQuaternion(
-            svs.quaternion).scale(SV_GREAT_CIRCLE_SIZE / 2)
+            svs.quaternion).scale(svs.size)
 
         const negator = (normalCollapsed.y > 0) ? -1 : 1
 
@@ -325,8 +380,6 @@ class SkyParallel extends SkyObject {
         else if (versin > 2 * Math.cos(this.latitude)) angleSubtended = Math.PI;
         else angleSubtended = Math.acos(1 - (versin / Math.cos(this.latitude)))
 
-        stat(normalTransformed)
-
         let startAngle = - angleSubtended
         let stopAngle = angleSubtended
 
@@ -344,8 +397,8 @@ class SkyParallel extends SkyObject {
         ctx.lineWidth = 1
         ctx.beginPath()
         ctx.ellipse(
-            SV_GREAT_CIRCLE_SIZE / 2 + positionTransformed.x, 
-            SV_GREAT_CIRCLE_SIZE / 2 + positionTransformed.y, 
+            SV_CANVAS_SIZE / 2 + positionTransformed.x, 
+            SV_CANVAS_SIZE / 2 + positionTransformed.y, 
             minorAxisLength, 
             majorAxisLength, 
             angle, startAngle, stopAngle
@@ -375,12 +428,12 @@ class SkyRadius extends SkyObject {
      draw(svs) {
         const ctx = svs.ctx
         const endpointTransformed = this.endpoint.transformByQuaternion(
-            svs.quaternion)
+            svs.quaternion).scale(svs.sizeBorderless)
         ctx.beginPath()
-        ctx.moveTo(SV_GREAT_CIRCLE_SIZE / 2, SV_GREAT_CIRCLE_SIZE / 2)
+        ctx.moveTo(SV_CANVAS_SIZE / 2, SV_CANVAS_SIZE / 2)
         ctx.lineTo(
-            endpointTransformed.x + SV_GREAT_CIRCLE_SIZE / 2, 
-            endpointTransformed.y + SV_GREAT_CIRCLE_SIZE / 2
+            endpointTransformed.x + SV_CANVAS_SIZE / 2, 
+            endpointTransformed.y + SV_CANVAS_SIZE / 2
         )
         if (endpointTransformed.z > 0) ctx.lineWidth = 3; else ctx.lineWidth = 1
         ctx.strokeStyle = this.color
@@ -402,6 +455,16 @@ class SkyViewState {
         this.needsUpdate = true
         /** @type {SkyObject[]} */
         this.objects = []
+        this.zoom = 1
+    }
+
+    get sizeBorderless() {
+        return (SV_GREAT_CIRCLE_SIZE / 2 
+            - 2 * SV_GREAT_CIRCLE_BORDER) * this.zoom
+    }
+
+    get size() {
+        return SV_GREAT_CIRCLE_SIZE / 2 * this.zoom
     }
 
     drawAll() {
@@ -428,6 +491,8 @@ function loaded() {
 
     createMeridians(svs)
     createParallels(svs)
+    svs.addObject(new EarthCircle())
+    svs.addObject(new CrossHairs())
 
     function animate() {
         handlePressedKeys(keyStates, svs)
@@ -450,6 +515,7 @@ function loaded() {
     document.addEventListener('keyup', (e) => keyStates[e.key] = false, false)
     document.addEventListener('keydown', (e) => keyStates[e.key] = true, false)
     document.addEventListener('keypress', (e) => handleKeyPress(e, svs), false)
+    document.addEventListener("wheel", (e) => handleScroll(e, svs), false)
 }
 
 /**
@@ -471,42 +537,67 @@ function handleKeyPress(e, svs) {
  */
 function handlePressedKeys(keyStates, svs) {
     if (svs.pointerLocked) {
+        const scale = 1 / SV_KEY_MOVEMENT_SCALE / svs.zoom
         if (keyStates[","] && !keyStates["."]) {
             const zRotationQuaternion = Quaternion.fromAxisAngle(
-                0, 0, 1, 1 / SV_KEY_MOVEMENT_SCALE)
+                0, 0, 1, scale)
             svs.quaternion = svs.quaternion.multiply(zRotationQuaternion)
             svs.needsUpdate = true
         }  
         if (keyStates["."] && !keyStates[","]) {
             const zRotationQuaternion = Quaternion.fromAxisAngle(
-                0, 0, 1, - 1 / SV_KEY_MOVEMENT_SCALE)
+                0, 0, 1, - scale)
             svs.quaternion = svs.quaternion.multiply(zRotationQuaternion)
             svs.needsUpdate = true
         }
         if (keyStates["ArrowUp"] && !keyStates["ArrowDown"]) {
             const xRotationQuaternion = Quaternion.fromAxisAngle(
-                1, 0, 0, - 1 / SV_KEY_MOVEMENT_SCALE)
+                1, 0, 0, - scale)
             svs.quaternion = svs.quaternion.multiply(xRotationQuaternion)
             svs.needsUpdate = true
         } 
         if (keyStates["ArrowDown"] && !keyStates["ArrowUp"]) {
             const xRotationQuaternion = Quaternion.fromAxisAngle(
-                1, 0, 0, 1 / SV_KEY_MOVEMENT_SCALE)
+                1, 0, 0, scale)
             svs.quaternion = svs.quaternion.multiply(xRotationQuaternion)
             svs.needsUpdate = true
         }
         if (keyStates["ArrowLeft"] && !keyStates["ArrowRight"]) {
             const yRotationQuaternion = Quaternion.fromAxisAngle(
-                0, 1, 0, 1 / SV_KEY_MOVEMENT_SCALE)
+                0, 1, 0, scale)
             svs.quaternion = svs.quaternion.multiply(yRotationQuaternion)
             svs.needsUpdate = true
         } 
         if (keyStates["ArrowRight"] && !keyStates["ArrowLeft"]) {
             const yRotationQuaternion = Quaternion.fromAxisAngle(
-                0, 1, 0, - 1 / SV_KEY_MOVEMENT_SCALE)
+                0, 1, 0, - scale)
             svs.quaternion = svs.quaternion.multiply(yRotationQuaternion)
             svs.needsUpdate = true
         }
+        const zoomScale = SV_KEY_ZOOM_SCALE
+        if (keyStates["z"] && !keyStates["x"]) {
+            svs.zoom /= zoomScale
+            svs.zoom = Math.min(Math.max(SV_MIN_ZOOM, svs.zoom), SV_MAX_ZOOM)
+            svs.needsUpdate = true
+        }
+        if (keyStates["x"] && !keyStates["z"]) {
+            svs.zoom *= zoomScale
+            svs.zoom = Math.min(Math.max(SV_MIN_ZOOM, svs.zoom), SV_MAX_ZOOM)
+            svs.needsUpdate = true
+        }
+    }
+}
+
+/**
+ * @param {WheelEvent} e 
+ * @param {SkyViewState} svs
+ */
+function handleScroll(e, svs) {
+    if (svs.pointerLocked && e.deltaY != 0) {
+        const scalingFactor = e.deltaY > 0 ? 1 / SV_WHEEL_SCALE : SV_WHEEL_SCALE
+        svs.zoom *= scalingFactor
+        svs.zoom = Math.min(Math.max(SV_MIN_ZOOM, svs.zoom), SV_MAX_ZOOM)
+        svs.needsUpdate = true
     }
 }
 
@@ -519,9 +610,9 @@ function onMouseMove(svs, e) {
     if (svs.pointerLocked) {
 
         const xRotationQuaternion = Quaternion.fromAxisAngle(
-            1, 0, 0, e.movementY / SV_MOVEMENT_SCALE)
+            1, 0, 0, e.movementY / SV_MOVEMENT_SCALE / svs.zoom)
         const yRotationQuaternion = Quaternion.fromAxisAngle(
-            0, 1, 0, - e.movementX / SV_MOVEMENT_SCALE)
+            0, 1, 0, - e.movementX / SV_MOVEMENT_SCALE / svs.zoom)
 
         svs.quaternion = svs.quaternion.multiply(
             xRotationQuaternion).multiply(yRotationQuaternion)
@@ -537,27 +628,8 @@ function updateCanvas(svs) {
     if (svs.needsUpdate) {
         clearCanvas(svs.ctx)
         svs.drawAll()
-        drawEarthOutline(svs)
         svs.needsUpdate = false
     }
-}
-
-/**
- * @param {SkyViewState} svs
- */
-function drawEarthOutline(svs) {
-    const ctx = svs.ctx
-    ctx.beginPath()
-    ctx.ellipse(
-        SV_GREAT_CIRCLE_SIZE / 2, 
-        SV_GREAT_CIRCLE_SIZE / 2, 
-        SV_GREAT_CIRCLE_SIZE / 2 - 2 * SV_GREAT_CIRCLE_BORDER, 
-        SV_GREAT_CIRCLE_SIZE / 2 - 2 * SV_GREAT_CIRCLE_BORDER, 
-        0, 0, 2 * Math.PI
-    );
-    ctx.strokeStyle = "black"
-    ctx.lineWidth = 1
-    ctx.stroke()
 }
 
 /**
@@ -569,9 +641,7 @@ function createMeridians(svs) {
 
     for (let i = 0; i < SV_MERIDIAN_COUNT; i++) {
         const angle = radSep * i
-        const normal = new Vector(Math.cos(angle), 0, Math.sin(angle)).scale(
-            SV_GREAT_CIRCLE_SIZE / 2 - 2 * SV_GREAT_CIRCLE_BORDER)
-        // svs.addObject(new SkyRadius(normal))
+        const normal = new Vector(Math.cos(angle), 0, Math.sin(angle))
         svs.addObject(new SkyGreatCircle(normal))
     }
 }
