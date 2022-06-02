@@ -1,7 +1,7 @@
 const SV_GREAT_CIRCLE_SIZE = 450
 const SV_GREAT_CIRCLE_BORDER = 1
 const SV_MERIDIAN_COUNT = 4
-const SV_PARALLEL_COUNT = 7
+const SV_PARALLEL_COUNT = 3
 const SV_MOVEMENT_SCALE = 100
 const SV_KEY_MOVEMENT_SCALE = 25
 
@@ -87,6 +87,10 @@ class Vector {
      */
     getAngleTo(o) {
         return Math.acos(this.getCosineDistance(o))
+    }
+
+    toString() {
+        return `(${this.x}, ${this.y}, ${this.z})`
     }
 }
 
@@ -237,10 +241,24 @@ class SkyGreatCircle extends SkyObject {
         
         const normalCollapsed = normalTransformed.collapseToXY()
 
-        const angle = normalCollapsed.length === 0 ? 0 :
-            normalCollapsed.getAngleTo(new Vector(-1, 0, 0))
-
         const negator = (normalCollapsed.y > 0) ? -1 : 1
+
+        const angle = positiveModulo(
+            normalCollapsed.length === 0 ? 0 :
+                normalCollapsed.getAngleTo(new Vector(-1, 0, 0)) * negator,
+            Math.PI
+        )
+        
+        let startAngle, stopAngle;
+        if ((normalTransformed.z * normalTransformed.x > 0 && angle > Math.PI / 2) || (normalTransformed.z * normalTransformed.x < 0 && angle < Math.PI / 2)) {
+            startAngle = Math.PI / 2
+            stopAngle = 3 * Math.PI / 2
+        } else {
+            startAngle = - Math.PI / 2
+            stopAngle = Math.PI / 2
+        }
+
+        stat(`${normalTransformed} ${angle}`)
 
         ctx.lineWidth = 1
         ctx.beginPath()
@@ -249,7 +267,9 @@ class SkyGreatCircle extends SkyObject {
             SV_GREAT_CIRCLE_SIZE / 2, 
             minorAxisLength, 
             majorAxisLength, 
-            negator * positiveModulo(angle, Math.PI), 0, 2 * Math.PI
+            angle,
+            startAngle, stopAngle
+            // 0, 2 * Math.PI
         );
         ctx.strokeStyle = "black"
         ctx.lineWidth = 1
@@ -290,10 +310,14 @@ class SkyParallel extends SkyObject {
         const positionTransformed = this.positionVector.transformByQuaternion(
             svs.quaternion).scale(SV_GREAT_CIRCLE_SIZE / 2)
 
-        const angle = normalCollapsed.length === 0 ? 0 :
-            normalCollapsed.getAngleTo(new Vector(-1, 0, 0))
-
         const negator = (normalCollapsed.y > 0) ? -1 : 1
+
+        const angle = positiveModulo(
+            normalCollapsed.length === 0 ? 0 :
+                normalCollapsed.getAngleTo(new Vector(-1, 0, 0)) * negator,
+            Math.PI
+        )
+
 
         ctx.lineWidth = 1
         ctx.beginPath()
@@ -302,7 +326,7 @@ class SkyParallel extends SkyObject {
             SV_GREAT_CIRCLE_SIZE / 2 + positionTransformed.y, 
             Math.abs(minorAxisLength), 
             Math.abs(majorAxisLength), 
-            negator * positiveModulo(angle, Math.PI), 0, 2 * Math.PI
+            angle, 0, 2 * Math.PI
         );
         ctx.strokeStyle = "orange"
         ctx.lineWidth = 1
@@ -418,9 +442,11 @@ function loaded() {
  * @param {SkyViewState} svs
  */
 function handleKeyPress(e, svs) {
-    if (e.key === "0") {
-        svs.quaternion = Quaternion.identity()
-        svs.needsUpdate = true
+    if (svs.pointerLocked) {
+        if (e.key === "0") {
+            svs.quaternion = Quaternion.identity()
+            svs.needsUpdate = true
+        }
     }
 }
 
@@ -586,4 +612,8 @@ function addSlider(label, min, max, value,
     tr.appendChild(td1)
     tr.appendChild(td2)
     td2.appendChild(slider)
+}
+
+function stat(t) {
+    document.getElementById("stat").innerText = t.toString()
 }
