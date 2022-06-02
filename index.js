@@ -1,6 +1,7 @@
 const SV_GREAT_CIRCLE_SIZE = 450
 const SV_GREAT_CIRCLE_BORDER = 1
 const SV_MERIDIAN_COUNT = 4
+const SV_PARALLEL_COUNT = 7
 const SV_MOVEMENT_SCALE = 100
 
 //// MATH ///
@@ -206,7 +207,7 @@ class SkyObject {
     }
 }
 
-class SkyCircle extends SkyObject {
+class SkyGreatCircle extends SkyObject {
     /**
      * @param {Vector} normal
      */
@@ -250,6 +251,59 @@ class SkyCircle extends SkyObject {
             negator * positiveModulo(angle, Math.PI), 0, 2 * Math.PI
         );
         ctx.strokeStyle = "black"
+        ctx.lineWidth = 1
+        ctx.stroke()
+    }
+}
+
+class SkyParallel extends SkyObject {
+    /**
+     * @param {number} latitude - latitude above the equator, in radians
+     */
+    constructor(latitude) {
+        super()
+        this.latitude = latitude
+        this.positionVector = new Vector(0, - Math.sin(latitude), 0)
+    }
+
+    /**
+     * @override
+     * 
+     * @param {SkyViewState} svs
+     */
+    draw(svs) {
+
+        const ctx = svs.ctx
+
+        const normalTransformed = new Vector(0, -1, 0).transformByQuaternion(
+            svs.quaternion)
+
+        const majorAxisLength = Math.cos(this.latitude) * (
+            SV_GREAT_CIRCLE_SIZE / 2 - SV_GREAT_CIRCLE_BORDER)
+        const minorAxisLength = Math.abs(normalTransformed.getCosineDistance(
+            new Vector(0, 0, 1))) * Math.cos(this.latitude) * (
+                SV_GREAT_CIRCLE_SIZE / 2 - SV_GREAT_CIRCLE_BORDER)
+        
+        const normalCollapsed = normalTransformed.collapseToXY()
+
+        const positionTransformed = this.positionVector.transformByQuaternion(
+            svs.quaternion).scale(SV_GREAT_CIRCLE_SIZE / 2)
+
+        const angle = normalCollapsed.length === 0 ? 0 :
+            normalCollapsed.getAngleTo(new Vector(-1, 0, 0))
+
+        const negator = (normalCollapsed.y > 0) ? -1 : 1
+
+        ctx.lineWidth = 1
+        ctx.beginPath()
+        ctx.ellipse(
+            SV_GREAT_CIRCLE_SIZE / 2 + positionTransformed.x, 
+            SV_GREAT_CIRCLE_SIZE / 2 + positionTransformed.y, 
+            Math.abs(minorAxisLength), 
+            Math.abs(majorAxisLength), 
+            negator * positiveModulo(angle, Math.PI), 0, 2 * Math.PI
+        );
+        ctx.strokeStyle = "orange"
         ctx.lineWidth = 1
         ctx.stroke()
     }
@@ -323,6 +377,8 @@ function loaded() {
     window.svs = svs
 
     createMeridians(svs)
+    createParallels(svs)
+
     svs.addObject(new SkyRadius(new Vector(0, 0, -1).scale(
         SV_GREAT_CIRCLE_SIZE / 2), "red"))
     svs.addObject(new SkyRadius(new Vector(0, -1, 0).scale(
@@ -403,7 +459,20 @@ function createMeridians(svs) {
         const normal = new Vector(Math.cos(angle), 0, Math.sin(angle)).scale(
             SV_GREAT_CIRCLE_SIZE / 2 - 2 * SV_GREAT_CIRCLE_BORDER)
         // svs.addObject(new SkyRadius(normal))
-        svs.addObject(new SkyCircle(normal))
+        svs.addObject(new SkyGreatCircle(normal))
+    }
+}
+
+/**
+ * @param {SkyViewState} svs
+ */
+ function createParallels(svs) {
+
+    radSep = Math.PI / (SV_PARALLEL_COUNT + 1)
+
+    for (let i = 1; i <= SV_PARALLEL_COUNT; i++) {
+        const angle = radSep * i - Math.PI / 2
+        svs.addObject(new SkyParallel(angle))
     }
 }
 
