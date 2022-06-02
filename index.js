@@ -1,6 +1,6 @@
-const SV_GREAT_CIRCLE_SIZE = 400
+const SV_GREAT_CIRCLE_SIZE = 450
 const SV_GREAT_CIRCLE_BORDER = 1
-const SV_MERIDIAN_COUNT = 12
+const SV_MERIDIAN_COUNT = 2
 const SV_MOVEMENT_SCALE = 100
 
 //// MATH ///
@@ -27,6 +27,10 @@ class Vector {
         this.z = z
     }
 
+    get length() {
+        return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2) + Math.pow(this.z, 2))
+    }
+
     /**
      * Returns a new vector resulting from scaling this vector down by 
      * a factor of `r`. Does not change the original vector.
@@ -48,6 +52,30 @@ class Vector {
      */
     transformByQuaternion(q) {
         return q.inverse().multiply(this.toQuaternion()).multiply(q).vectorPart
+    }
+    
+    collapseToXY() {
+        return new Vector(this.x, this.y, 0)
+    }
+
+    /**
+     * Calculates the dot product of this vector and `o`.
+     * 
+     * @param {Vector} o
+     */
+    dotProduct(o) {
+        return this.x * o.x + this.y * o.y + this.z * o.z
+    }
+    
+    /**
+     * Gets the angle between this vector and `o`.
+     * 
+     * @param {Vector} o
+     */
+    getAngleTo(o) {
+        const dotProduct = this.dotProduct(o)
+        const lengthProduct = this.length * o.length
+        return Math.acos(dotProduct / lengthProduct)
     }
 }
 
@@ -101,6 +129,15 @@ class Quaternion {
         )
     }
 
+    get magnitude() {
+        return Math.sqrt(
+            Math.pow(this.x, 2) +
+            Math.pow(this.y, 2) +
+            Math.pow(this.z, 2) +
+            Math.pow(this.w, 2)
+        )
+    }
+
     /**
      * Returns the result of multiplying this quaternion times `o`.
      * Does not change either quaternion.
@@ -145,6 +182,100 @@ class Quaternion {
 ///////////// 
 // #endregion
 
+// DRAWING //
+// #region //
+
+class SkyObject {
+    /**
+     * Draws the object using the given context and SkyView state.
+     * 
+     * @param {SkyViewState} svs
+     */
+    draw(svs) {
+        const ctx = svs.ctx
+        // Code to draw object goes here (override)
+    }
+}
+
+class SkyEllipse extends SkyObject {
+    /**
+     * @param {Vector} majorAxis
+     * @param {Vector} minorAxis
+     */
+    constructor(majorAxis, minorAxis) {
+        super()
+        this.majorAxis = majorAxis
+        this.minorAxis = minorAxis
+    }
+
+    /**
+     * @override
+     * 
+     * @param {SkyViewState} svs
+     */
+    draw(svs) {
+
+        const ctx = svs.ctx
+
+        const majorAxisTransformed = this.majorAxis.transformByQuaternion(
+            svs.quaternion).collapseToXY()
+        const minorAxisTransformed = this.minorAxis.transformByQuaternion(
+            svs.quaternion).collapseToXY()
+
+        const majorAxisLength = majorAxisTransformed.length
+        const minorAxisLength = minorAxisTransformed.length
+        const angle = majorAxisTransformed.getAngleTo(this.majorAxis)
+        
+        ctx.lineWidth = 1
+        ctx.beginPath()
+        ctx.ellipse(
+            SV_GREAT_CIRCLE_SIZE / 2, 
+            SV_GREAT_CIRCLE_SIZE / 2, 
+            minorAxisLength, 
+            majorAxisLength, 
+            angle, 0, 2 * Math.PI
+        );
+        ctx.strokeStyle = "black"
+        ctx.lineWidth = 1
+        ctx.stroke()
+    }
+}
+
+class SkyRadius extends SkyObject {
+    /**
+     * @param {Vector} endpoint
+     * @param {string} color
+     */
+    constructor(endpoint, color = "black") {
+        super()
+        this.endpoint = endpoint
+        this.color = color
+    }
+
+    /**
+     * @override
+     * 
+     * @param {SkyViewState} svs
+     */
+     draw(svs) {
+        const ctx = svs.ctx
+        const endpointTransformed = this.endpoint.transformByQuaternion(
+            svs.quaternion)
+        ctx.beginPath()
+        ctx.moveTo(SV_GREAT_CIRCLE_SIZE / 2, SV_GREAT_CIRCLE_SIZE / 2)
+        ctx.lineTo(
+            endpointTransformed.x + SV_GREAT_CIRCLE_SIZE / 2, 
+            endpointTransformed.y + SV_GREAT_CIRCLE_SIZE / 2
+        )
+        if (endpointTransformed.z > 0) ctx.lineWidth = 3; else ctx.lineWidth = 1
+        ctx.strokeStyle = this.color
+        ctx.stroke()
+     }
+}
+
+////////////////
+// #endregion //
+
 class SkyViewState {
     /**
      * @param {CanvasRenderingContext2D} ctx
@@ -153,6 +284,19 @@ class SkyViewState {
         this.quaternion = Quaternion.identity()
         this.ctx = ctx
         this.pointerLocked = false
+        /** @type {SkyObject[]} */
+        this.objects = []
+    }
+
+    drawAll() {
+        for (const obj of this.objects) { obj.draw(this) }
+    }
+
+    /**
+     * @param {SkyObject} o
+     */
+    addObject(o) {
+        this.objects.push(o)
     }
 }
 
@@ -161,6 +305,17 @@ function loaded() {
     const canvas = document.getElementById("sky")
     const ctx = canvas.getContext("2d")
     const svs = new SkyViewState(ctx)
+
+    window.svs = svs
+
+    createMeridians(svs)
+    svs.addObject(new SkyRadius(new Vector(0, 0, -1).scale(
+        SV_GREAT_CIRCLE_SIZE / 2), "red"))
+    svs.addObject(new SkyRadius(new Vector(0, -1, 0).scale(
+        SV_GREAT_CIRCLE_SIZE / 2), "green"))
+    svs.addObject(new SkyRadius(new Vector(1, 0, 0).scale(
+        SV_GREAT_CIRCLE_SIZE / 2), "blue"))
+
     updateCanvas(svs)
 
     canvas.onclick = function() {
@@ -184,12 +339,12 @@ function onMouseMove(svs, e) {
     if (svs.pointerLocked) {
 
         const xRotationQuaternion = Quaternion.fromAxisAngle(
-            1, 0, 0, e.movementX / SV_MOVEMENT_SCALE)
+            1, 0, 0, e.movementY / SV_MOVEMENT_SCALE)
         const yRotationQuaternion = Quaternion.fromAxisAngle(
-            0, 1, 0, e.movementY / SV_MOVEMENT_SCALE)
+            0, 1, 0, - e.movementX / SV_MOVEMENT_SCALE)
 
-        svs.quaternion = svs.quaternion.premultiply(
-            xRotationQuaternion).premultiply(yRotationQuaternion)
+        svs.quaternion = svs.quaternion.multiply(
+            xRotationQuaternion).multiply(yRotationQuaternion)
         updateCanvas(svs)
     }
 
@@ -199,11 +354,8 @@ function onMouseMove(svs, e) {
  * @param {SkyViewState} svs
  */
 function updateCanvas(svs) {
-
-    console.log(new Vector(0, 0, -1).transformByQuaternion(svs.quaternion))
-
     clearCanvas(svs.ctx)
-    drawMeridians(svs)
+    svs.drawAll()
     drawEarthOutline(svs)
 }
 
@@ -220,13 +372,30 @@ function drawEarthOutline(svs) {
         SV_GREAT_CIRCLE_SIZE / 2 - 2 * SV_GREAT_CIRCLE_BORDER, 
         0, 0, 2 * Math.PI
     );
+    ctx.strokeStyle = "black"
+    ctx.lineWidth = 1
     ctx.stroke()
 }
 
 /**
  * @param {SkyViewState} svs
- * @param {number} size
- * @param {number} count
+ */
+function createMeridians(svs) {
+
+    radSep = Math.PI / SV_MERIDIAN_COUNT
+
+    for (let i = 0; i < SV_MERIDIAN_COUNT; i++) {
+        const angle = radSep * i
+        const majorAxis = new Vector(0, 1, 0).scale(
+            SV_GREAT_CIRCLE_SIZE / 2 - 2 * SV_GREAT_CIRCLE_BORDER)
+        const minorAxis = new Vector(Math.cos(angle), 0, Math.sin(angle)).scale(
+            SV_GREAT_CIRCLE_SIZE / 2 - 2 * SV_GREAT_CIRCLE_BORDER)
+        svs.addObject(new SkyEllipse(majorAxis, minorAxis))
+    }
+}
+
+/**
+ * @param {SkyViewState} svs
  */
 function drawMeridians(svs) {
     const ctx = svs.ctx
