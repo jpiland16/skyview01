@@ -1,7 +1,7 @@
 const SV_GREAT_CIRCLE_SIZE = 450
 const SV_GREAT_CIRCLE_BORDER = 1
 const SV_MERIDIAN_COUNT = 4
-const SV_PARALLEL_COUNT = 3
+const SV_PARALLEL_COUNT = 7
 const SV_MOVEMENT_SCALE = 100
 const SV_KEY_MOVEMENT_SCALE = 25
 
@@ -249,16 +249,12 @@ class SkyGreatCircle extends SkyObject {
             Math.PI
         )
         
-        let startAngle, stopAngle;
+        let startAngle = - Math.PI / 2
+        let stopAngle = Math.PI / 2
         if ((normalTransformed.z * normalTransformed.x > 0 && angle > Math.PI / 2) || (normalTransformed.z * normalTransformed.x < 0 && angle < Math.PI / 2)) {
-            startAngle = Math.PI / 2
-            stopAngle = 3 * Math.PI / 2
-        } else {
-            startAngle = - Math.PI / 2
-            stopAngle = Math.PI / 2
+            startAngle += Math.PI
+            stopAngle  += Math.PI
         }
-
-        stat(`${normalTransformed} ${angle}`)
 
         ctx.lineWidth = 1
         ctx.beginPath()
@@ -318,15 +314,41 @@ class SkyParallel extends SkyObject {
             Math.PI
         )
 
+        const axisTilt = Math.PI / 2 - new Vector(0, -1, 0).transformByQuaternion(
+            svs.quaternion
+        ).getAngleTo(new Vector(0, 0, 1))
+                    
+        let versin = Math.cos(this.latitude + axisTilt) / Math.cos(axisTilt)
+        let angleSubtended;
+
+        if (versin < 0) angleSubtended = 0;
+        else if (versin > 2 * Math.cos(this.latitude)) angleSubtended = Math.PI;
+        else angleSubtended = Math.acos(1 - (versin / Math.cos(this.latitude)))
+
+        stat(normalTransformed)
+
+        let startAngle = - angleSubtended
+        let stopAngle = angleSubtended
+
+        
+        if ((normalTransformed.z * normalTransformed.x > 0 && angle > Math.PI / 2) || (normalTransformed.z * normalTransformed.x < 0 && angle < Math.PI / 2)) {
+            // startAngle += Math.PI
+            // stopAngle  += Math.PI
+        }
+
+        if (normalTransformed.z * normalTransformed.y < 0) {
+            startAngle += Math.PI
+            stopAngle  += Math.PI
+        }
 
         ctx.lineWidth = 1
         ctx.beginPath()
         ctx.ellipse(
             SV_GREAT_CIRCLE_SIZE / 2 + positionTransformed.x, 
             SV_GREAT_CIRCLE_SIZE / 2 + positionTransformed.y, 
-            Math.abs(minorAxisLength), 
-            Math.abs(majorAxisLength), 
-            angle, 0, 2 * Math.PI
+            minorAxisLength, 
+            majorAxisLength, 
+            angle, startAngle, stopAngle
         );
         ctx.strokeStyle = "orange"
         ctx.lineWidth = 1
@@ -406,13 +428,6 @@ function loaded() {
 
     createMeridians(svs)
     createParallels(svs)
-
-    svs.addObject(new SkyRadius(new Vector(0, 0, -1).scale(
-        SV_GREAT_CIRCLE_SIZE / 2), "red"))
-    svs.addObject(new SkyRadius(new Vector(0, -1, 0).scale(
-        SV_GREAT_CIRCLE_SIZE / 2), "green"))
-    svs.addObject(new SkyRadius(new Vector(1, 0, 0).scale(
-        SV_GREAT_CIRCLE_SIZE / 2), "blue"))
 
     function animate() {
         handlePressedKeys(keyStates, svs)
