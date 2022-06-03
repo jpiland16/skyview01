@@ -70,11 +70,13 @@ function handlePressedKeys(keyStates, svs) {
         if (keyStates["z"] && !keyStates["x"]) {
             svs.zoom /= zoomScale
             svs.zoom = Math.min(Math.max(SV_MIN_ZOOM, svs.zoom), SV_MAX_ZOOM)
+            svs.updateGradients()
             svs.needsUpdate = true
         }
         if (keyStates["x"] && !keyStates["z"]) {
             svs.zoom *= zoomScale
             svs.zoom = Math.min(Math.max(SV_MIN_ZOOM, svs.zoom), SV_MAX_ZOOM)
+            svs.updateGradients()
             svs.needsUpdate = true
         }
     }
@@ -89,6 +91,7 @@ function handleScroll(e, svs) {
         const scalingFactor = e.deltaY < 0 ? 1 / SV_WHEEL_SCALE : SV_WHEEL_SCALE
         svs.zoom *= scalingFactor
         svs.zoom = Math.min(Math.max(SV_MIN_ZOOM, svs.zoom), SV_MAX_ZOOM)
+        svs.updateGradients()
         svs.needsUpdate = true
     }
 }

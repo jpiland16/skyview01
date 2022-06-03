@@ -12,7 +12,11 @@ class SkyViewState {
         this.zoom = 1
         this.dpr = window.devicePixelRatio || 1
         this.colorSchemes = createColorSchemes(this)
-        this.colorScheme = this.colorSchemes["red"]
+        this.selectedColorScheme = "red-grad"
+    }
+
+    get colorScheme() {
+        return this.colorSchemes[this.selectedColorScheme]
     }
 
     get sizeBorderless() {
@@ -30,6 +34,10 @@ class SkyViewState {
 
     get centerY() {   
         return this.ctx.canvas.height / 2 
+    }
+
+    updateGradients() {
+        this.colorSchemes = createColorSchemes(this)        
     }
 
     drawAll() {
@@ -71,6 +79,7 @@ function loaded() {
     function onResize() {
         canvas.width = window.innerWidth * svs.dpr
         canvas.height = window.innerHeight * svs.dpr
+        svs.updateGradients()
         svs.needsUpdate = true
     }
 
