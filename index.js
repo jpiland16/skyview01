@@ -10,23 +10,24 @@ class SkyViewState {
         /** @type {SkyObject[]} */
         this.objects = []
         this.zoom = 1
+        this.dpr = window.devicePixelRatio || 1
     }
 
     get sizeBorderless() {
         return (SV_GREAT_CIRCLE_SIZE / 2 
-            - 2 * SV_GREAT_CIRCLE_BORDER) * this.zoom
+            - SV_GREAT_CIRCLE_BORDER) * this.zoom * this.dpr
     }
 
     get size() {
-        return SV_GREAT_CIRCLE_SIZE / 2 * this.zoom
+        return SV_GREAT_CIRCLE_SIZE / 2 * this.zoom * this.dpr
     }
 
     get centerX() {
-        return this.ctx.canvas.width / 2
+        return this.ctx.canvas.width / 2  
     }
 
     get centerY() {   
-        return this.ctx.canvas.height / 2
+        return this.ctx.canvas.height / 2 
     }
 
     drawAll() {
@@ -55,16 +56,19 @@ function loaded() {
     svs.addObject(new EarthCircle())
     svs.addObject(new CrossHairs())
 
+    loadHYG(svs)
+
     function animate() {
         handlePressedKeys(keyStates, svs)
         updateCanvas(svs)
         window.requestAnimationFrame(animate)
     }
+
     window.requestAnimationFrame(animate)
 
     function onResize() {
-        canvas.width = window.innerWidth
-        canvas.height = window.innerHeight
+        canvas.width = window.innerWidth * svs.dpr
+        canvas.height = window.innerHeight * svs.dpr
         svs.needsUpdate = true
     }
 

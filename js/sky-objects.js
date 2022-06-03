@@ -103,7 +103,6 @@ class SkyMeridian extends SkyObject {
             stopAngle  += Math.PI
         }
 
-        ctx.lineWidth = 1
         ctx.beginPath()
         ctx.ellipse(
             svs.centerX, 
@@ -143,10 +142,10 @@ class SkyParallel extends SkyObject {
             svs.quaternion)
 
         const majorAxisLength = Math.cos(this.latitude) * (
-            svs.sizeBorderless - SV_GREAT_CIRCLE_BORDER)
+            svs.sizeBorderless)
         const minorAxisLength = Math.abs(normalTransformed.getCosineDistance(
             new Vector(0, 0, 1))) * Math.cos(this.latitude) * (
-                svs.sizeBorderless - SV_GREAT_CIRCLE_BORDER)
+                svs.sizeBorderless)
         
         const normalCollapsed = normalTransformed.collapseToXY()
 
@@ -186,7 +185,6 @@ class SkyParallel extends SkyObject {
             stopAngle  += Math.PI
         }
 
-        ctx.lineWidth = 1
         ctx.beginPath()
         ctx.ellipse(
             svs.centerX + positionTransformed.x, 
@@ -231,4 +229,63 @@ class SkyRadius extends SkyObject {
         ctx.strokeStyle = this.color
         ctx.stroke()
      }
+}
+
+class Star extends SkyObject {
+    /**
+     * @param {number} ra
+     * @param {number} dec
+     * @param {number} magnitude
+     * @param {string} name
+     */
+    constructor(ra, dec, magnitude, name) {
+        super()
+        const raRad = ra / 12 * Math.PI
+        const decRad = dec / 180 * Math.PI
+        const vector = new Vector(Math.cos(raRad), 0, Math.sin(raRad)).scale(
+            Math.cos(decRad))
+        vector.y = - Math.sin(decRad)
+        this.ra = ra
+        this.dec = dec
+        this.magnitude = magnitude
+        this.name = name
+        this.position = vector
+    }
+
+    /**
+     * @override
+     * 
+     * @param {SkyViewState} svs
+     */
+    draw(svs) {
+        const ctx = svs.ctx
+    
+        const transformedPosition = this.position.transformByQuaternion(
+            svs.quaternion).scale(svs.size)
+
+        if (transformedPosition.z > 0) return
+
+        const brightness = 10  * Math.pow(1.4, - this.magnitude)
+
+        if (transformedPosition.collapseToXY().length + brightness > svs.size)
+            return
+
+        ctx.beginPath()
+        ctx.ellipse(
+            svs.centerX + transformedPosition.x, 
+            svs.centerY + transformedPosition.y, 
+            brightness, brightness, 0, 0, 2 * Math.PI    
+        )
+        ctx.fill()
+        ctx.font = `${28 }px Arial`
+        ctx.fillText(
+            this.name, 
+            svs.centerX + transformedPosition.x + 15, 
+            svs.centerY + transformedPosition.y + 15
+        );
+
+        ctx.strokeStyle = "black"
+        ctx.lineWidth = 1
+        
+    }
 }

@@ -29,3 +29,8 @@ td:first-of-type {
     left: 0px;
     padding: 6px;
 }
+
+canvas {
+    width: 100%;
+    height: 100%;
+}
