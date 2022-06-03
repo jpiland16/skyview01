@@ -30,6 +30,18 @@ function handlePressedKeys(keyStates, svs) {
             svs.quaternion = svs.quaternion.multiply(zRotationQuaternion)
             svs.needsUpdate = true
         }
+        if (keyStates["o"] && !keyStates["p"]) {
+            const polRotationQuaternion = Quaternion.fromAxisAngle(
+                0, -1, 0, scale)
+            svs.quaternion = svs.quaternion.premultiply(polRotationQuaternion)
+            svs.needsUpdate = true
+        }  
+        if (keyStates["p"] && !keyStates["o"]) {
+            const polRotationQuaternion = Quaternion.fromAxisAngle(
+                0, -1, 0, - scale)
+            svs.quaternion = svs.quaternion.premultiply(polRotationQuaternion)
+            svs.needsUpdate = true
+        }
         if (keyStates["ArrowUp"] && !keyStates["ArrowDown"]) {
             const xRotationQuaternion = Quaternion.fromAxisAngle(
                 1, 0, 0, - scale)

@@ -55,7 +55,7 @@ class EarthCircle extends SkyObject {
             svs.sizeBorderless + 1, 
             0, 0, 2 * Math.PI
         );
-        ctx.strokeStyle = "black"
+        ctx.strokeStyle = svs.colorScheme.lineColor
         ctx.lineWidth = 2
         ctx.stroke()
     }
@@ -113,7 +113,7 @@ class SkyMeridian extends SkyObject {
             startAngle, stopAngle
             // 0, 2 * Math.PI
         );
-        ctx.strokeStyle = "black"
+        ctx.strokeStyle = svs.colorScheme.meridianColor
         ctx.lineWidth = 1
         ctx.stroke()
     }
@@ -193,7 +193,7 @@ class SkyParallel extends SkyObject {
             majorAxisLength, 
             angle, startAngle, stopAngle
         );
-        ctx.strokeStyle = "black"
+        ctx.strokeStyle = svs.colorScheme.parallelColor
         ctx.lineWidth = 1
         ctx.stroke()
     }
@@ -204,7 +204,7 @@ class SkyRadius extends SkyObject {
      * @param {Vector} endpoint
      * @param {string} color
      */
-    constructor(endpoint, color = "black") {
+    constructor(endpoint, color = svs.colorScheme.lineColor) {
         super()
         this.endpoint = endpoint
         this.color = color
@@ -276,16 +276,18 @@ class Star extends SkyObject {
             svs.centerY + transformedPosition.y, 
             brightness, brightness, 0, 0, 2 * Math.PI    
         )
+        ctx.fillStyle = svs.colorScheme.starColor
+        ctx.lineWidth = 1
         ctx.fill()
+
+        ctx.fillStyle = svs.colorScheme.textColor
         ctx.font = `${28 }px Arial`
+
         ctx.fillText(
             this.name, 
             svs.centerX + transformedPosition.x + 15, 
             svs.centerY + transformedPosition.y + 15
         );
-
-        ctx.strokeStyle = "black"
-        ctx.lineWidth = 1
         
     }
 }

@@ -1,4 +1,4 @@
-const SV_GREAT_CIRCLE_SIZE = 500
+const SV_GREAT_CIRCLE_SIZE = window.innerHeight * 1.2
 const SV_GREAT_CIRCLE_BORDER = 1
 const SV_MERIDIAN_COUNT = 6
 const SV_PARALLEL_COUNT = 11

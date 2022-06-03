@@ -11,6 +11,8 @@ class SkyViewState {
         this.objects = []
         this.zoom = 1
         this.dpr = window.devicePixelRatio || 1
+        this.colorSchemes = createColorSchemes(this)
+        this.colorScheme = this.colorSchemes["red"]
     }
 
     get sizeBorderless() {
@@ -98,17 +100,20 @@ function loaded() {
  */
 function updateCanvas(svs) {
     if (svs.needsUpdate) {
-        clearCanvas(svs.ctx)
+        clearCanvas(svs)
         svs.drawAll()
         svs.needsUpdate = false
     }
 }
 
 /**
- * @param {CanvasRenderingContext2D} ctx
+ * @param {SkyViewState} svs
  */
-function clearCanvas(ctx) {
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+function clearCanvas(svs) {
+    const ctx = svs.ctx
+    // ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+    ctx.fillStyle = svs.colorScheme.bgColor
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 }
 
 function stat(t) {
