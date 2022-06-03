@@ -22,9 +22,6 @@ function processStarRecord(record) {
  */
 async function loadHYG(svs) {
     const r = await (await fetch(HYG_DB_URL)).text()
-    r.split("\n").slice(1).map(processStarRecord).filter(
-        star => star.name != "" && star.magnitude < 2
-    ).forEach(s => svs.addObject(s))
+    r.split("\n").slice(1).map(processStarRecord).forEach(s => svs.addStar(s))
     svs.needsUpdate = true
-    window.svs = svs
 }

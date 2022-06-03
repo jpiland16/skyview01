@@ -3,17 +3,24 @@ class SkyViewState {
      * @param {CanvasRenderingContext2D} ctx
      */
     constructor(ctx) {
+
         this.quaternion = Quaternion.identity()
         this.ctx = ctx
         this.pointerLocked = false
         this.needsUpdate = true
+
         /** @type {SkyObject[]} */
         this.objects = []
+
+        /** @type {Star[]} */
+        this.stars = []
+
         this.zoom = 1
         this.dpr = window.devicePixelRatio || 1
         this.colorSchemes = createColorSchemes(this)
         this.colorSchemeNames = Object.getOwnPropertyNames(this.colorSchemes)
         this.setColorSchemeIndex(3)
+
     }
 
     get colors() {
@@ -78,7 +85,9 @@ class SkyViewState {
     }
 
     drawAll() {
-        for (const obj of this.objects) { obj.draw(this) }
+        this.objects.forEach(o => o.draw(this))
+        this.stars.filter((s) => s.magnitude < this.zoom * 2).forEach(
+            s => s.draw(this))
     }
 
     /**
@@ -86,6 +95,13 @@ class SkyViewState {
      */
     addObject(o) {
         this.objects.push(o)
+    }
+
+    /**
+     * @param {Star} s
+     */
+     addStar(s) {
+        this.stars.push(s)
     }
 }
 
