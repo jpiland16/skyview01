@@ -55,7 +55,7 @@ class EarthCircle extends SkyObject {
             svs.sizeBorderless + 1, 
             0, 0, 2 * Math.PI
         );
-        ctx.strokeStyle = svs.colorScheme.lineColor
+        ctx.strokeStyle = svs.colors.lineColor
         ctx.lineWidth = 2
         ctx.stroke()
     }
@@ -98,7 +98,7 @@ class SkyMeridian extends SkyObject {
         
         let startAngle = - Math.PI / 2
         let stopAngle = Math.PI / 2
-        if ((normalTransformed.z * normalTransformed.x > 0 && angle > Math.PI / 2) || (normalTransformed.z * normalTransformed.x < 0 && angle < Math.PI / 2)) {
+        if ((normalTransformed.z * normalTransformed.x > 0 && angle >= Math.PI / 2) || (normalTransformed.z * normalTransformed.x < 0 && angle < Math.PI / 2)) {
             startAngle += Math.PI
             stopAngle  += Math.PI
         }
@@ -113,7 +113,7 @@ class SkyMeridian extends SkyObject {
             startAngle, stopAngle
             // 0, 2 * Math.PI
         );
-        ctx.strokeStyle = svs.colorScheme.meridianColor
+        ctx.strokeStyle = svs.colors.meridianColor
         ctx.lineWidth = 1
         ctx.stroke()
     }
@@ -193,7 +193,7 @@ class SkyParallel extends SkyObject {
             majorAxisLength, 
             angle, startAngle, stopAngle
         );
-        ctx.strokeStyle = svs.colorScheme.parallelColor
+        ctx.strokeStyle = svs.colors.parallelColor
         ctx.lineWidth = 1
         ctx.stroke()
     }
@@ -240,16 +240,11 @@ class Star extends SkyObject {
      */
     constructor(ra, dec, magnitude, name) {
         super()
-        const raRad = ra / 12 * Math.PI
-        const decRad = dec / 180 * Math.PI
-        const vector = new Vector(Math.cos(raRad), 0, Math.sin(raRad)).scale(
-            Math.cos(decRad))
-        vector.y = - Math.sin(decRad)
         this.ra = ra
         this.dec = dec
         this.magnitude = magnitude
         this.name = name
-        this.position = vector
+        this.position = raDecToPosition(ra, dec)
     }
 
     /**
@@ -276,11 +271,11 @@ class Star extends SkyObject {
             svs.centerY + transformedPosition.y, 
             brightness, brightness, 0, 0, 2 * Math.PI    
         )
-        ctx.fillStyle = svs.colorScheme.starColor
+        ctx.fillStyle = svs.colors.starColor
         ctx.lineWidth = 1
         ctx.fill()
 
-        ctx.fillStyle = svs.colorScheme.textColor
+        ctx.fillStyle = svs.colors.textColor
         ctx.font = `${28 }px Arial`
 
         ctx.fillText(

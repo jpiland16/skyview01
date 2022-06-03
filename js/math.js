@@ -183,3 +183,29 @@ class Quaternion {
         return new Vector(this.x, this.y, this.z)
     }
 }
+
+/**
+ * @param {number} ra - Right ascension in hours
+ * @param {number} dec - Declination in degrees
+ */
+function raDecToPosition(ra, dec) {
+    const raRad  = ra  / 12  * Math.PI
+    const decRad = dec / 180 * Math.PI
+    const vector = new Vector( - Math.cos(raRad), 0, Math.sin(raRad)).scale(
+        Math.cos(decRad))
+    vector.y = - Math.sin(decRad)
+    return vector
+}
+
+/**
+ * @param {Vector} position - Unit vector pointing to the object in 
+ *                            the celestial sphere
+ */
+function positionToRaDec(position) {
+    const raRad  = Math.atan2(position.z, - position.x)
+    const decRad = Math.asin(- position.y)
+    const ra  = positiveModulo(raRad  * 12  / Math.PI, 24)
+    const dec = decRad * 180 / Math.PI
+    return { ra, dec }
+}
+

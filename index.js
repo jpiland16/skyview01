@@ -12,11 +12,12 @@ class SkyViewState {
         this.zoom = 1
         this.dpr = window.devicePixelRatio || 1
         this.colorSchemes = createColorSchemes(this)
-        this.selectedColorScheme = "red-grad"
+        this.colorSchemeNames = Object.getOwnPropertyNames(this.colorSchemes)
+        this.setColorSchemeIndex(3)
     }
 
-    get colorScheme() {
-        return this.colorSchemes[this.selectedColorScheme]
+    get colors() {
+        return this.colorSchemes[this.colorSchemeNames[this.colorSchemeIndex]]
     }
 
     get sizeBorderless() {
@@ -34,6 +35,42 @@ class SkyViewState {
 
     get centerY() {   
         return this.ctx.canvas.height / 2 
+    }
+
+    get raDec() {
+        const targetVector = new Vector(0, 0, -1).transformByQuaternion(
+            this.quaternion.inverse())
+        return positionToRaDec(targetVector)
+    }
+
+    /**
+     * @param {string} colorSchemeName
+     */
+    setColorScheme(colorSchemeName) {
+        try {
+            const index = this.colorSchemeNames.indexOf(colorSchemeName)
+            this.setColorSchemeIndex(index)
+        } catch {
+            console.warn(`Color scheme "${colorSchemeName}" not found!`)
+        }
+    }
+
+    /**
+     * @param {number} index
+     */
+    setColorSchemeIndex(index) {
+        this.colorSchemeIndex = index
+        this.selectedColorScheme = this.colorSchemeNames[index]
+        document.body.style.color = this.colors.htmlTextColor
+        document.getElementById("stat").style.backgroundColor = 
+            this.colors.bgColor
+        this.needsUpdate = true
+    }
+
+    chooseNextColorScheme() {
+        const newIndex = (this.colorSchemeIndex + 1) % 
+            this.colorSchemeNames.length
+        this.setColorSchemeIndex(newIndex)
     }
 
     updateGradients() {
@@ -70,6 +107,7 @@ function loaded() {
 
     function animate() {
         handlePressedKeys(keyStates, svs)
+        showPosition(svs)
         updateCanvas(svs)
         window.requestAnimationFrame(animate)
     }
@@ -107,6 +145,47 @@ function loaded() {
 /**
  * @param {SkyViewState} svs
  */
+function showPosition(svs) {
+    stat(raDecToString(svs.raDec))    
+}
+
+/**
+ * @param {number} decimal
+ */
+function decimalToMinutesSeconds(decimal) {
+    const minutes = decimal * 60
+    const min = Math.floor(minutes)
+    const sec = Math.round((minutes - min) * 60) 
+    return { min, sec }
+}
+
+/**
+ * @param {Object} raDec
+ * @param {number} raDec.ra
+ * @param {number} raDec.dec
+ */
+function raDecToString(raDec) {
+    const { ra, dec } = raDec
+    const raH  = Math.floor(ra)
+    const decD = Math.floor(dec)
+    const raDecimal  = ra  - raH
+    const decDecimal = dec - decD
+    const { min: raM,  sec: raS  } = decimalToMinutesSeconds(raDecimal)
+    const { min: decM, sec: decS } = decimalToMinutesSeconds(decDecimal)
+    return `RA ${
+        raH.toString().padStart(2, "0")}h ${
+        raM.toString().padStart(2, "0")}m ${
+        raS.toString().padStart(2, "0")}s ` 
+    + `Dec ${
+        (decD >= 0) ?  "+" + decD.toString().padStart(2, "0") :
+        "-" + decD.toString().substring(1).padStart(2, "0")}\u00b0 ${
+        decM.toString().padStart(2, "0")}' ${
+        decS.toString().padStart(2, "0")}"`
+}
+
+/**
+ * @param {SkyViewState} svs
+ */
 function updateCanvas(svs) {
     if (svs.needsUpdate) {
         clearCanvas(svs)
@@ -121,7 +200,7 @@ function updateCanvas(svs) {
 function clearCanvas(svs) {
     const ctx = svs.ctx
     // ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
-    ctx.fillStyle = svs.colorScheme.bgColor
+    ctx.fillStyle = svs.colors.bgColor
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 }
 

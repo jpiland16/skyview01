@@ -4,9 +4,13 @@
  */
  function handleKeyPress(e, svs) {
     if (svs.pointerLocked) {
-        if (e.key === "0") {
-            svs.quaternion = Quaternion.identity()
-            svs.needsUpdate = true
+        switch (e.key) {
+            case "0":
+                svs.quaternion = Quaternion.identity()
+                svs.needsUpdate = true
+                break
+            case "c":
+                svs.chooseNextColorScheme()
         }
     }
 }
