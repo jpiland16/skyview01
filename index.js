@@ -16,6 +16,7 @@ class SkyViewState {
         this.stars = []
 
         this.zoom = 1
+        this.starFactor = 1
         this.dpr = window.devicePixelRatio || 1
         this.colorSchemes = createColorSchemes(this)
         this.colorSchemeNames = Object.getOwnPropertyNames(this.colorSchemes)
@@ -86,8 +87,8 @@ class SkyViewState {
 
     drawAll() {
         this.objects.forEach(o => o.draw(this))
-        this.stars.filter((s) => s.magnitude < this.zoom * 2).forEach(
-            s => s.draw(this))
+        this.stars.filter((s) => s.magnitude < this.zoom * 2 * this.starFactor)
+            .forEach(s => s.draw(this))
     }
 
     /**

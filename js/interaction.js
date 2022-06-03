@@ -11,6 +11,14 @@
                 break
             case "c":
                 svs.chooseNextColorScheme()
+                break
+            case ")":
+                svs.quaternion = Quaternion.identity()
+                svs.zoom = 1
+                svs.starFactor = 1
+                svs.updateGradients()
+                svs.needsUpdate = true
+                break
         }
     }
 }
@@ -81,6 +89,14 @@ function handlePressedKeys(keyStates, svs) {
             svs.zoom *= zoomScale
             svs.zoom = Math.min(Math.max(SV_MIN_ZOOM, svs.zoom), SV_MAX_ZOOM)
             svs.updateGradients()
+            svs.needsUpdate = true
+        }
+        if (keyStates["a"] && !keyStates["s"]) {
+            svs.starFactor *= zoomScale
+            svs.needsUpdate = true
+        }
+        if (keyStates["s"] && !keyStates["a"]) {
+            svs.starFactor /= zoomScale
             svs.needsUpdate = true
         }
     }
