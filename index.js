@@ -19,7 +19,7 @@ class SkyViewState {
         this.dpr = window.devicePixelRatio || 1
         this.colorSchemes = createColorSchemes(this)
         this.colorSchemeNames = Object.getOwnPropertyNames(this.colorSchemes)
-        this.setColorSchemeIndex(3)
+        this.setColorSchemeIndex(0)
 
     }
 

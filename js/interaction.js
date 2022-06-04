@@ -62,6 +62,37 @@ function handlePressedKeys(keyStates, svs) {
             svs.quaternion = svs.quaternion.premultiply(polRotationQuaternion)
             svs.needsUpdate = true
         }
+        function useProximityToPoles() {
+            
+        }
+        // NOTE: For changing the declination angle, we can't reach the
+        // poles without risking losing the right ascension value!
+        if (keyStates["l"] && !keyStates[";"]) {
+            const targetVector = new Vector(0, 0, -1).transformByQuaternion(
+                svs.quaternion.inverse())
+            const angleToSouthPole = targetVector.getAngleTo(
+                new Vector(0, 1, 0))
+            const rot = Math.min(scale, angleToSouthPole * 0.9)
+            const newXAxis = new Vector(
+                Math.cos(svs.raRad), 0, - Math.sin(svs.raRad))
+            const decRotationQuaternion = Quaternion.fromAxisAngle(
+                newXAxis.x, newXAxis.y, newXAxis.z, rot)
+            svs.quaternion = svs.quaternion.premultiply(decRotationQuaternion)
+            svs.needsUpdate = true
+        }  
+        if (keyStates[";"] && !keyStates["l"]) {
+            const targetVector = new Vector(0, 0, -1).transformByQuaternion(
+                svs.quaternion.inverse())
+            const angleToNorthPole = targetVector.getAngleTo(
+                new Vector(0, -1, 0))
+            const rot = Math.min(scale, angleToNorthPole * 0.9)
+            const newXAxis = new Vector(
+                Math.cos(svs.raRad), 0, - Math.sin(svs.raRad))
+            const decRotationQuaternion = Quaternion.fromAxisAngle(
+                newXAxis.x, newXAxis.y, newXAxis.z, - rot)
+            svs.quaternion = svs.quaternion.premultiply(decRotationQuaternion)
+            svs.needsUpdate = true
+        }
         if (keyStates["ArrowUp"] && !keyStates["ArrowDown"]) {
             const xRotationQuaternion = Quaternion.fromAxisAngle(
                 1, 0, 0, - scale)
