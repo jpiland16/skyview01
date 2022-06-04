@@ -185,10 +185,12 @@ class Quaternion {
 }
 
 /**
- * @param {number} ra - Right ascension in hours
- * @param {number} dec - Declination in degrees
+ * @param {Object} raDec
+ * @param {number} raDec.ra  - Right ascension in hours
+ * @param {number} raDec.dec - Declination in degrees
  */
-function raDecToPosition(ra, dec) {
+function raDecToPosition(raDec) {
+    const { ra, dec } = raDec
     const raRad  = ra  / 12  * Math.PI - SV_VIEW_RA_ROTATION
     const decRad = dec / 180 * Math.PI
     const vector = new Vector( - Math.cos(raRad), 0, Math.sin(raRad)).scale(

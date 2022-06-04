@@ -7,7 +7,8 @@ class SkyViewState {
         this.quaternion = Quaternion.identity()
         this.ctx = ctx
         this.pointerLocked = false
-        this.needsUpdate = true
+        this.needsUpdate = 
+        this.refreshRaDec()
 
         /** @type {SkyObject[]} */
         this.objects = []
@@ -44,11 +45,43 @@ class SkyViewState {
     get centerY() {   
         return this.ctx.canvas.height / 2 
     }
-
-    get raDec() {
+    
+    refreshRaDec() {
         const targetVector = new Vector(0, 0, -1).transformByQuaternion(
             this.quaternion.inverse())
-        return positionToRaDec(targetVector)
+        this.raDec = positionToRaDec(targetVector)
+
+        this.raRad  = this.raDec.ra  / 12  * Math.PI
+        this.decRad = this.raDec.dec / 180 * Math.PI
+        this.maxInclusiveAngularDistance = this.getMaxFieldOfViewRad()
+    }
+
+    getMaxFieldOfViewRad() {
+        const percentOfRadiusVisible = Math.sqrt(
+            Math.pow(this.ctx.canvas.width, 2) +
+            Math.pow(this.ctx.canvas.height, 2)
+        ) / (this.size * 2)
+        return percentOfRadiusVisible * Math.PI / 2
+    }
+
+    /**
+     * @param {Object} raDec
+     * @param {number} raDec.ra  - Right ascension in hours
+     * @param {number} raDec.dec - Declination in degrees
+     */
+    raDecIsPossiblyInView(raDec) {
+        const { ra, dec } = raDec
+        const raRad  = ra  / 12  * Math.PI
+        const decRad = dec / 180 * Math.PI
+        const distanceFromCenter = Math.sqrt(
+            Math.pow(Math.min(
+                // Account for discontinuity in RA
+                this.raRad  - raRad, 0,
+                (2 * Math.PI) - Math.abs(this.raRad - raRad)
+            ),  2) * 0 +
+            Math.pow(this.decRad - decRad, 2)
+        )
+        return distanceFromCenter <= this.getMaxFieldOfViewRad() 
     }
 
     /**
@@ -87,8 +120,10 @@ class SkyViewState {
 
     drawAll() {
         this.objects.forEach(o => o.draw(this))
-        this.stars.filter((s) => s.magnitude < this.zoom * 2 * this.starFactor)
-            .forEach(s => s.draw(this))
+        this.stars.filter((s) => 
+            s.magnitude < this.zoom * 2 * this.starFactor &&
+            this.raDecIsPossiblyInView(s.raDec)
+        ).forEach(s => s.draw(this))
     }
 
     /**
@@ -124,8 +159,8 @@ function loaded() {
 
     function animate() {
         handlePressedKeys(keyStates, svs)
-        showPosition(svs)
         updateCanvas(svs)
+        showPosition(svs)
         window.requestAnimationFrame(animate)
     }
 
@@ -206,6 +241,7 @@ function raDecToString(raDec) {
 function updateCanvas(svs) {
     if (svs.needsUpdate) {
         clearCanvas(svs)
+        svs.refreshRaDec()
         svs.drawAll()
         svs.needsUpdate = false
     }

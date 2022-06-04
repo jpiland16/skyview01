@@ -240,11 +240,13 @@ class Star extends SkyObject {
      */
     constructor(ra, dec, magnitude, name) {
         super()
-        this.ra = ra
-        this.dec = dec
+        this.raDec = {
+            ra:  ra,
+            dec: dec
+        }
         this.magnitude = magnitude
         this.name = name
-        this.position = raDecToPosition(ra, dec)
+        this.position = raDecToPosition(this.raDec)
     }
 
     /**
