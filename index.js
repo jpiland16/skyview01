@@ -9,12 +9,10 @@ class SkyViewState {
         this.pointerLocked = false
         this.needsUpdate = 
         this.refreshRaDec()
-
-        /** @type {SkyObject[]} */
-        this.objects = []
-
-        /** @type {Star[]} */
-        this.stars = []
+        this.ui = new Showing(["crosshairs", "star-names"])
+        
+        /** @type {SkyObject[]} */ this.objects = []
+        /** @type {Star[]} */      this.stars = []
 
         this.zoom = 1
         this.starFactor = 1
@@ -138,6 +136,34 @@ class SkyViewState {
      */
      addStar(s) {
         this.stars.push(s)
+    }
+}
+
+class Showing {
+    /**
+     * @param {Array<string> showing}
+     */
+    constructor(showing = []) {
+        this.showing = showing
+    }
+    
+    /**
+     * @param {string} item
+     */
+    isShowing(item) {
+        return this.showing.indexOf(item) >= 0
+    }
+
+    /**
+     * @param {string} item
+     */
+    toggle(item) {
+        const index = this.showing.indexOf(item)
+        if (index >= 0) {
+            this.showing.splice(index, 1)
+        } else {
+            this.showing.push(item)
+        }
     }
 }
 

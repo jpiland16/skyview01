@@ -19,6 +19,14 @@
                 svs.updateGradients()
                 svs.needsUpdate = true
                 break
+            case "n":
+                svs.ui.toggle("star-names")
+                svs.needsUpdate = true
+                break
+            case "h":
+                svs.ui.toggle("crosshairs")
+                svs.needsUpdate = true
+                break
         }
     }
 }
@@ -32,13 +40,13 @@ function handlePressedKeys(keyStates, svs) {
         const scale = 1 / SV_KEY_MOVEMENT_SCALE / svs.zoom
         if (keyStates[","] && !keyStates["."]) {
             const zRotationQuaternion = Quaternion.fromAxisAngle(
-                0, 0, 1, scale)
+                0, 0, 1, scale * svs.zoom) // Still rotate at a normal speed
             svs.quaternion = svs.quaternion.multiply(zRotationQuaternion)
             svs.needsUpdate = true
         }  
         if (keyStates["."] && !keyStates[","]) {
             const zRotationQuaternion = Quaternion.fromAxisAngle(
-                0, 0, 1, - scale)
+                0, 0, 1, - scale * svs.zoom) // Still rotate at a normal speed
             svs.quaternion = svs.quaternion.multiply(zRotationQuaternion)
             svs.needsUpdate = true
         }

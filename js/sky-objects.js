@@ -17,6 +17,9 @@ class CrossHairs extends SkyObject {
      * @param {SkyViewState} svs 
      */
     draw(svs) {
+
+        if (!svs.ui.isShowing("crosshairs")) return
+
         const ctx = svs.ctx
         const xCenter = svs.centerX
         const yCenter = svs.centerY
@@ -276,6 +279,8 @@ class Star extends SkyObject {
         ctx.fillStyle = svs.colors.starColor
         ctx.lineWidth = 1
         ctx.fill()
+
+        if (!svs.ui.isShowing("star-names")) return
 
         ctx.fillStyle = svs.colors.textColor
         ctx.font = `${28 }px Arial`
