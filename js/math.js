@@ -189,7 +189,7 @@ class Quaternion {
  * @param {number} dec - Declination in degrees
  */
 function raDecToPosition(ra, dec) {
-    const raRad  = ra  / 12  * Math.PI
+    const raRad  = ra  / 12  * Math.PI - SV_VIEW_RA_ROTATION
     const decRad = dec / 180 * Math.PI
     const vector = new Vector( - Math.cos(raRad), 0, Math.sin(raRad)).scale(
         Math.cos(decRad))
@@ -202,7 +202,7 @@ function raDecToPosition(ra, dec) {
  *                            the celestial sphere
  */
 function positionToRaDec(position) {
-    const raRad  = Math.atan2(position.z, - position.x)
+    const raRad  = Math.atan2(position.z, - position.x) + SV_VIEW_RA_ROTATION
     const decRad = Math.asin(- position.y)
     const ra  = positiveModulo(raRad  * 12  / Math.PI, 24)
     const dec = decRad * 180 / Math.PI
