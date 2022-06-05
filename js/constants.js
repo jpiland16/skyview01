@@ -11,3 +11,4 @@ const SV_MAX_ZOOM = Infinity
 const SV_CROSSHAIR_SIZE = 35
 const SV_CROSSHAIR_SPACE = 7
 const SV_VIEW_RA_ROTATION = Math.PI / 2
+const SV_CONTROL_SCALE = 20

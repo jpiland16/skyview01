@@ -9,7 +9,7 @@ class SkyViewState {
         this.pointerLocked = false
         this.needsUpdate = 
         this.refreshRaDec()
-        this.ui = new Showing(["crosshairs", "star-names"])
+        this.ui = new UI(["crosshairs", "star-names", "star-sizes", "globe"])
         
         /** @type {SkyObject[]} */ this.objects = []
         /** @type {Star[]} */      this.stars = []
@@ -112,6 +112,12 @@ class SkyViewState {
         this.setColorSchemeIndex(newIndex)
     }
 
+    choosePrevColorScheme() {
+        const newIndex = positiveModulo((this.colorSchemeIndex - 1),
+            this.colorSchemeNames.length)
+        this.setColorSchemeIndex(newIndex)
+    }
+
     updateGradients() {
         this.colorSchemes = createColorSchemes(this)        
     }
@@ -139,30 +145,30 @@ class SkyViewState {
     }
 }
 
-class Showing {
+class UI {
     /**
      * @param {Array<string> showing}
      */
-    constructor(showing = []) {
-        this.showing = showing
+    constructor(properties = []) {
+        this.properties = properties
     }
     
     /**
      * @param {string} item
      */
-    isShowing(item) {
-        return this.showing.indexOf(item) >= 0
+    has(item) {
+        return this.properties.indexOf(item) >= 0
     }
 
     /**
      * @param {string} item
      */
     toggle(item) {
-        const index = this.showing.indexOf(item)
+        const index = this.properties.indexOf(item)
         if (index >= 0) {
-            this.showing.splice(index, 1)
+            this.properties.splice(index, 1)
         } else {
-            this.showing.push(item)
+            this.properties.push(item)
         }
     }
 }
@@ -186,7 +192,6 @@ function loaded() {
     function animate() {
         handlePressedKeys(keyStates, svs)
         updateCanvas(svs)
-        showPosition(svs)
         window.requestAnimationFrame(animate)
     }
 
@@ -208,11 +213,23 @@ function loaded() {
     } , false)
 
     document.addEventListener('mousemove', (e) => {
-        onMouseMove(svs, e)
+        onMouseMove(svs, keyStates, e)
     }, false)
 
-    document.addEventListener('keyup', (e) => keyStates[e.key] = false, false)
-    document.addEventListener('keydown', (e) => keyStates[e.key] = true, false)
+    /**
+     * Make it so that SHIFT + KEYS do not register as the actual new chars.
+     * @param {string} s
+     */
+    function handleCasing(s) {
+        return s.replace("<", ",").replace(">", ".").toLowerCase()
+    }
+
+    document.addEventListener('keyup', (e) => {
+        keyStates[handleCasing(e.key)] = false
+    }, false)
+    document.addEventListener('keydown', (e) =>{
+        keyStates[handleCasing(e.key)] = true
+    }, false)
     document.addEventListener('keypress', (e) => handleKeyPress(e, svs), false)
     document.addEventListener("wheel", (e) => handleScroll(e, svs), false)
     window.addEventListener('resize', (e) => onResize(), false)
@@ -244,12 +261,18 @@ function decimalToMinutesSeconds(decimal) {
  */
 function raDecToString(raDec) {
     const { ra, dec } = raDec
-    const raH  = Math.floor(ra)
-    const decD = Math.floor(dec)
+    let raH  = Math.floor(ra)
+    let decD = Math.floor(dec)
     const raDecimal  = ra  - raH
     const decDecimal = dec - decD
-    const { min: raM,  sec: raS  } = decimalToMinutesSeconds(raDecimal)
-    const { min: decM, sec: decS } = decimalToMinutesSeconds(decDecimal)
+    let { min: raM,  sec: raS  } = decimalToMinutesSeconds(raDecimal)
+    let { min: decM, sec: decS } = decimalToMinutesSeconds(decDecimal)
+
+    if (decS === 60) { decS = 0; decM += 1}
+    if (decM === 60) { decM = 0; decD += 1}
+    if (raS  === 60) { raS  = 0; raM  += 1}
+    if (raM  === 60) { raM  = 0; raH  += 1}
+
     return `RA ${
         raH.toString().padStart(2, "0")}h ${
         raM.toString().padStart(2, "0")}m ${
@@ -268,6 +291,7 @@ function updateCanvas(svs) {
     if (svs.needsUpdate) {
         clearCanvas(svs)
         svs.refreshRaDec()
+        showPosition(svs)
         svs.drawAll()
         svs.needsUpdate = false
     }

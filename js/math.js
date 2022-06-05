@@ -204,6 +204,10 @@ function raDecToPosition(raDec) {
  *                            the celestial sphere
  */
 function positionToRaDec(position) {
+    // Apparently, due to rounding errors, there is a small chance
+    // that the position vector is slightly longer than a unit vector...
+    const len = position.length
+    position = position.scale(1 / len)
     const raRad  = Math.atan2(position.z, - position.x) + SV_VIEW_RA_ROTATION
     const decRad = Math.asin(- position.y)
     const ra  = positiveModulo(raRad  * 12  / Math.PI, 24)

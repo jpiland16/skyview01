@@ -18,7 +18,7 @@ class CrossHairs extends SkyObject {
      */
     draw(svs) {
 
-        if (!svs.ui.isShowing("crosshairs")) return
+        if (!svs.ui.has("crosshairs")) return
 
         const ctx = svs.ctx
         const xCenter = svs.centerX
@@ -80,6 +80,8 @@ class SkyMeridian extends SkyObject {
      */
     draw(svs) {
 
+        if (!svs.ui.has("globe")) return
+
         const ctx = svs.ctx
 
         const normalTransformed = this.normal.transformByQuaternion(
@@ -138,6 +140,8 @@ class SkyParallel extends SkyObject {
      * @param {SkyViewState} svs
      */
     draw(svs) {
+
+        if (!svs.ui.has("globe")) return
 
         const ctx = svs.ctx
 
@@ -265,10 +269,16 @@ class Star extends SkyObject {
 
         if (transformedPosition.z > 0) return
 
-        const brightness = 10  * Math.pow(1.4, - this.magnitude)
+        let brightness = 10  * Math.pow(1.4, - this.magnitude)
 
         if (transformedPosition.collapseToXY().length + brightness > svs.size)
             return
+        
+        const starOpacity = Math.round(Math.min(brightness / 6.2 * 255, 255))
+        const starOpacityText = starOpacity.toString(16).padStart(2, "0") 
+
+        if (!svs.ui.has("star-sizes"))
+            brightness = 3
 
         ctx.beginPath()
         ctx.ellipse(
@@ -276,13 +286,14 @@ class Star extends SkyObject {
             svs.centerY + transformedPosition.y, 
             brightness, brightness, 0, 0, 2 * Math.PI    
         )
-        ctx.fillStyle = svs.colors.starColor
+        ctx.fillStyle = svs.ui.has("star-opacity") ? 
+            svs.colors.htmlTextColor + starOpacityText : svs.colors.textColor
         ctx.lineWidth = 1
         ctx.fill()
 
-        if (!svs.ui.isShowing("star-names")) return
+        if (!svs.ui.has("star-names")) return
 
-        ctx.fillStyle = svs.colors.textColor
+        ctx.fillStyle = svs.colors.starColor
         ctx.font = `${28 }px Arial`
 
         ctx.fillText(
