@@ -161,7 +161,7 @@ function onMouseMove(svs, keyStates, e) {
         let controlScale = 1
         if (keyStates["shift"]) controlScale = SV_CONTROL_SCALE
 
-        if (!(keyStates["control"] || keyStates["meta"])) {
+        if (keyStates["control"] || keyStates["meta"]) {
 
             const xRotationQuaternion = Quaternion.fromAxisAngle(
                 1, 0, 0, e.movementY / SV_MOVEMENT_SCALE / svs.zoom /

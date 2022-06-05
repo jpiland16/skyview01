@@ -206,7 +206,14 @@ function loaded() {
 
     canvas.onclick = function() {
         canvas.requestPointerLock();
+        window.setTimeout(() => {
+            if (document.pointerLockElement !== canvas) {
+                // Occurs if the user clicks too quickly after exiting lock
+                alert("Pointer not captured - click again to begin navigation")
+            }
+        }, 100)
     };
+
     document.addEventListener('pointerlockchange', (e) => {
         svs.pointerLocked = (document.pointerLockElement === canvas)
         svs.needsUpdate = true
