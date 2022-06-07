@@ -216,14 +216,12 @@ function positionToRaDec(position) {
 }
 
 /**
- * @param {number} a - angle in radians
- * @param {number} b - angle in radians
+ * @param {List<number>} a
+ * @param {List<number>} b
  */
-function CCWSubtract(a, b) {
-    a = positiveModulo(a, 2 * Math.PI)
-    b = positiveModulo(b, 2 * Math.PI)
-    const defaultDist = a - b
-    const distancePlus = a + 2 * Math.PI - b
-    return (Math.abs(defaultDist) < Math.abs(distancePlus)) ? 
-        defaultDist : distancePlus
+function getRegionOverlap(a, b) {
+    const start = Math.max(a[0], b[0])
+    const stop  = Math.min(a[1], b[1])
+    if (start >= stop) return undefined
+    return [start, stop]
 }

@@ -50,17 +50,21 @@ async function loadConstBnd(svs) {
     const r = await (await fetch(CONST_BND_URL)).text()
     const points = r.split("\n").slice(0, -1).map(processConstBndPtRecord)
     /** @type {SkyObject[]} */ const objects = []
-    for (let i = 0; i < points.length - 1; i++) {
+    // for (let i = 0; i < points.length - 1; i++) {
+    for (let i = 0; i < 10; i++) {
         const point1 = points[i]
         const point2 = points[i+1]
         if (point1.ra === point2.ra) {
-            objects.push("part of a great circle")
+            // objects.push("part of a great circle")
         } else {
-            objects.push("part of a parallel")
+            objects.push(new SkyParallelLineSegment(
+                point1.dec,
+                point1.ra, point2.ra
+            ))
         }
     }
-    svs.objects.push(new SkyParallelLineSegment(22.5 / 180 * Math.PI, 0.5, 11.5))
-    // svs.objects.push(...objects)
+    // svs.objects.push(new SkyParallelLineSegment(22.5, 0.5, 11.5))
+    svs.objects.push(...objects)
 }
 
 /**

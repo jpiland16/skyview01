@@ -181,12 +181,6 @@ class SkyParallel extends SkyObject {
         let startAngle = - angleSubtended
         let stopAngle = angleSubtended
 
-        
-        if ((normalTransformed.z * normalTransformed.x > 0 && angle > Math.PI / 2) || (normalTransformed.z * normalTransformed.x < 0 && angle < Math.PI / 2)) {
-            // startAngle += Math.PI
-            // stopAngle  += Math.PI
-        }
-
         if (normalTransformed.z * normalTransformed.y < 0) {
             startAngle += Math.PI
             stopAngle  += Math.PI
@@ -300,16 +294,18 @@ class SkyMeridianLineSegment extends SkyObject {
 
 class SkyParallelLineSegment extends SkyObject {
     /**
-     * @param {number} latitude - latitude above the equator, in radians
-     * @param {number} raMin    - minimum right ascension, in hours
-     * @param {number} raMax    - maximum right ascension, in hours
+     * @param {number} dec   - declination in degrees
+     * @param {number} raMin - minimum right ascension, in hours
+     * @param {number} raMax - maximum right ascension, in hours
      */
-    constructor(latitude, raMin, raMax) {
+    constructor(dec, raMin, raMax) {
         super()
-        this.latitude = latitude
-        this.raRadMin = raMin / 12 * Math.PI - SV_VIEW_RA_ROTATION
-        this.raRadMax = raMax / 12 * Math.PI - SV_VIEW_RA_ROTATION
-        this.positionVector = new Vector(0, - Math.sin(latitude), 0)
+        this.latitude = dec * Math.PI / 180
+        this.raRadMin = positiveModulo(
+            raMin / 12 * Math.PI - SV_VIEW_RA_ROTATION, 2 * Math.PI)
+        this.raRadMax = positiveModulo(
+            raMax / 12 * Math.PI - SV_VIEW_RA_ROTATION, 2 * Math.PI)
+        this.positionVector = new Vector(0, - Math.sin(this.latitude), 0)
     }
 
     /**
@@ -360,11 +356,6 @@ class SkyParallelLineSegment extends SkyObject {
         let stopAngle = angleSubtended
         
         let flipped = false;
-        
-        if ((normalTransformed.z * normalTransformed.x > 0 && angle > Math.PI / 2) || (normalTransformed.z * normalTransformed.x < 0 && angle < Math.PI / 2)) {
-            // startAngle += Math.PI
-            // stopAngle  += Math.PI
-        }
 
         if (normalTransformed.z * normalTransformed.y < 0) {
             startAngle += Math.PI
@@ -381,65 +372,61 @@ class SkyParallelLineSegment extends SkyObject {
             2 * Math.PI
         )
 
-        const offsetStartVsThisStart = CCWSubtract(raRadVisibleMin, 
-            this.raRadMin)
-        const offsetStopVsThisStop   = CCWSubtract(raRadVisibleMax, 
-            this.raRadMax)
-        const offsetStartVsThisStop  = CCWSubtract(raRadVisibleMin, 
-            this.raRadMax)
-        const offsetStopVsThisStart  = CCWSubtract(raRadVisibleMax, 
-            this.raRadMin)
+        // Deal with the discontinuity about RA = 24h (2 * PI)
 
-        let start, stop;
+        let visibleRegion1,visibleRegion2, lineSegment1, lineSegment2;
 
-        if (offsetStartVsThisStart > 0 && offsetStartVsThisStop > 0) {
-            // Segment is to the left of the visible region
-            return
-        }
-
-        if (offsetStartVsThisStart > 0 && offsetStartVsThisStop < 0) {
-            // Segment overlaps visible region on the left
-            start = startAngle
-            stop  = startAngle - offsetStartVsThisStop
-        } else if (offsetStartVsThisStart > 0 && offsetStopVsThisStop < 0) {
-            // Segment encloses the visible region
-            start = startAngle
-            stop  = stopAngle
-        } else if (offsetStartVsThisStart < 0 && offsetStopVsThisStop > 0) {
-            // Segment is inside the visible region
-            start = startAngle - offsetStartVsThisStart
-            stop =  stopAngle  - offsetStopVsThisStop
-        } else if (offsetStartVsThisStart < 0 && offsetStartVsThisStop > 0) {
-            // Segment overlaps the visible region on the right
-            start = startAngle - offsetStartVsThisStart
-            stop  = stopAngle
+        if (raRadVisibleMin > raRadVisibleMax) {
+            visibleRegion1 = [0, raRadVisibleMax]
+            visibleRegion2 = [raRadVisibleMin, 2 * Math.PI]
+        } else if (angleSubtended === Math.PI) {
+            visibleRegion1 = [0, 2 * Math.PI]
         } else {
-            console.log("Didn't test for this case!")
-            return
+            visibleRegion1 = [raRadVisibleMin, raRadVisibleMax]
         }
 
-        if (flipped) {
-            const d1 = start - startAngle
-            const d2 = stopAngle - stop
-            start = startAngle + d2
-            stop  = stopAngle - d1
+        if (this.raRadMin > this.raRadMax) {
+            lineSegment1 = [0, this.raRadMax]
+            lineSegment2 = [this.raRadMin, 2 * Math.PI]
+        } else {
+            lineSegment1 = [this.raRadMin, this.raRadMax]
         }
 
-        // console.log((stop - start) * 12 / Math.PI)   
+        for (const seg of [lineSegment1, lineSegment2]) {
 
-        ctx.beginPath()
-        ctx.ellipse(
-            svs.centerX + positionTransformed.x, 
-            svs.centerY + positionTransformed.y, 
-            minorAxisLength, 
-            majorAxisLength, 
-            angle, start, stop
-        );
-        ctx.strokeStyle = svs.colors.parallelColor
-        ctx.lineWidth = 10
-        // ctx.setLineDash([2, 4])
-        ctx.stroke()
-        // ctx.setLineDash([5, 0])
+            if (!seg) continue
+
+            for (const reg of [visibleRegion1, visibleRegion2]) {
+
+                if (!reg) continue
+
+                const visibleSegment = getRegionOverlap(seg, reg)
+                if (!visibleSegment) continue
+
+                const startOff = (!flipped) ?
+                    visibleSegment[0] - raRadVisibleMin :
+                    raRadVisibleMax - visibleSegment[1]
+                    
+                const stopOff  = (!flipped) ?
+                    visibleSegment[1] - raRadVisibleMin :
+                    raRadVisibleMax - visibleSegment[0]
+                
+                ctx.beginPath()
+                ctx.ellipse(
+                    svs.centerX + positionTransformed.x, 
+                    svs.centerY + positionTransformed.y, 
+                    minorAxisLength, 
+                    majorAxisLength, 
+                    angle, startAngle + startOff, startAngle + stopOff
+                );
+                ctx.strokeStyle = svs.colors.parallelColor
+                ctx.lineWidth = 1
+                ctx.setLineDash([2, 4])
+                ctx.stroke()
+                ctx.setLineDash([0, 0])
+            }
+            
+        }
     }
 }
 
