@@ -9,7 +9,10 @@ class SkyViewState {
         this.pointerLocked = false
         this.needsUpdate = 
         this.refreshRaDec()
-        this.ui = new UI(["crosshairs", "star-names", "star-sizes", "globe"])
+        this.ui = new UI([
+            "crosshairs", "star-names", "star-sizes", "globe", "stars",
+            "constellation-boundaries"
+        ])
         
         /** @type {SkyObject[]} */ this.objects = []
         /** @type {Star[]} */      this.stars = []
@@ -124,6 +127,7 @@ class SkyViewState {
 
     drawAll() {
         this.objects.forEach(o => o.draw(this))
+        if (!this.ui.has("stars")) return
         this.stars.filter((s) => 
             s.magnitude < this.zoom * 2 * this.starFactor &&
             this.raDecIsPossiblyInView(s.raDec)

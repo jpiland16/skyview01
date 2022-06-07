@@ -315,7 +315,7 @@ class SkyParallelLineSegment extends SkyObject {
      */
     draw(svs) {
 
-        // if (!svs.ui.has("constellation-lines")) return
+        if (!svs.ui.has("constellation-boundaries")) return
 
         const ctx = svs.ctx
 

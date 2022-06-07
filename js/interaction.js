@@ -34,8 +34,16 @@
                 svs.ui.toggle("star-sizes")
                 svs.needsUpdate = true
                 break
+            case "B":
+                svs.ui.toggle("constellation-boundaries")
+                svs.needsUpdate = true
+                break
             case "v":
                 svs.ui.toggle("star-opacity")
+                svs.needsUpdate = true
+                break
+            case "V":
+                svs.ui.toggle("stars")
                 svs.needsUpdate = true
                 break
             case "g":

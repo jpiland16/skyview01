@@ -50,21 +50,33 @@ async function loadConstBnd(svs) {
     const r = await (await fetch(CONST_BND_URL)).text()
     const points = r.split("\n").slice(0, -1).map(processConstBndPtRecord)
     /** @type {SkyObject[]} */ const objects = []
-    // for (let i = 0; i < points.length - 1; i++) {
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < points.length - 1; i++) {
+    // for (let i = 0; i < 38; i++) {
         const point1 = points[i]
         const point2 = points[i+1]
+        if (!point2.const2) continue // Starting a new constellation 
         if (point1.ra === point2.ra) {
             // objects.push("part of a great circle")
         } else {
+            let raStart = point1.ra
+            let raStop  = point2.ra
+            // Note that our plotting engine expects everything to work 
+            // counterclockwise, so we have to flip the start and stop points
+            // if we are moving clockwise. Warning - there may be issues later
+            // if we need to draw parallels that span more than 12 hours!
+            if (positiveModulo(raStop - raStart, 24) > 12) { 
+                raStart = point2.ra
+                raStop = point1.ra
+            }
             objects.push(new SkyParallelLineSegment(
                 point1.dec,
-                point1.ra, point2.ra
+                raStart, raStop
             ))
         }
     }
     // svs.objects.push(new SkyParallelLineSegment(22.5, 0.5, 11.5))
     svs.objects.push(...objects)
+    svs.needsUpdate = true
 }
 
 /**
