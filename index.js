@@ -188,6 +188,7 @@ function loaded() {
     svs.addObject(new CrossHairs())
 
     loadHYG(svs)
+    loadConstBnd(svs)
 
     function animate() {
         handlePressedKeys(keyStates, svs)

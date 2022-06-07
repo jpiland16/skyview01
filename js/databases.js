@@ -1,4 +1,22 @@
-const HYG_DB_URL = "https://raw.githubusercontent.com/astronexus/HYG-Database/master/hygfull.csv"
+const HYG_DB_URL = "/data/hygfull.csv"
+const CONST_BND_URL = "/data/constbnd.dat.txt"
+
+const CONST_REGEX = /([ \d]\d\.\d{5}) ([\+-]\d{2}\.\d{5}) (\w+)(?: {2}(\w+))?/
+
+class ConstellationBoundaryPoint {
+    /**
+     * @param {number} ra
+     * @param {number} dec
+     * @param {string} const1
+     * @param {string} const2
+     */
+    constructor(ra, dec, const1, const2) {
+        this.ra     = ra
+        this.dec    = dec
+        this.const1 = const1
+        this.const2 = const2
+    }
+}
 
 /**
  * @param {string} record
@@ -15,6 +33,34 @@ function processStarRecord(record) {
     const name = properName === "" ? bfName : properName
     return new Star(ra, dec, mag, name)
 
+}
+
+/**
+ * @param {string} record
+ */
+function processConstBndPtRecord(record) {
+    const matches = CONST_REGEX.exec(record).slice(1)
+    return new ConstellationBoundaryPoint(...matches)
+}
+
+/**
+ * @param {SkyViewState} svs
+ */
+async function loadConstBnd(svs) {
+    const r = await (await fetch(CONST_BND_URL)).text()
+    const points = r.split("\n").slice(0, -1).map(processConstBndPtRecord)
+    /** @type {SkyObject[]} */ const objects = []
+    for (let i = 0; i < points.length - 1; i++) {
+        const point1 = points[i]
+        const point2 = points[i+1]
+        if (point1.ra === point2.ra) {
+            objects.push("part of a great circle")
+        } else {
+            objects.push("part of a parallel")
+        }
+    }
+    svs.objects.push(new SkyParallelLineSegment(22.5 / 180 * Math.PI, 0.5, 11.5))
+    // svs.objects.push(...objects)
 }
 
 /**

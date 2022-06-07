@@ -3,7 +3,7 @@
  * @param {number} n
  * See: https://stackoverflow.com/questions/14997165/fastest-way-to-get-a-positive-modulo-in-c-c
  */
- function positiveModulo(i, n) {
+function positiveModulo(i, n) {
     return (i % n + n) % n
 }
 
@@ -215,3 +215,15 @@ function positionToRaDec(position) {
     return { ra, dec }
 }
 
+/**
+ * @param {number} a - angle in radians
+ * @param {number} b - angle in radians
+ */
+function CCWSubtract(a, b) {
+    a = positiveModulo(a, 2 * Math.PI)
+    b = positiveModulo(b, 2 * Math.PI)
+    const defaultDist = a - b
+    const distancePlus = a + 2 * Math.PI - b
+    return (Math.abs(defaultDist) < Math.abs(distancePlus)) ? 
+        defaultDist : distancePlus
+}
