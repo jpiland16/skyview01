@@ -272,28 +272,37 @@ function decimalToMinutesSeconds(decimal) {
  * @param {number} raDec.dec
  */
 function raDecToString(raDec) {
-    const { ra, dec } = raDec
-    let raH  = Math.floor(ra)
-    let decD = Math.floor(dec)
-    const raDecimal  = ra  - raH
-    const decDecimal = dec - decD
-    let { min: raM,  sec: raS  } = decimalToMinutesSeconds(raDecimal)
-    let { min: decM, sec: decS } = decimalToMinutesSeconds(decDecimal)
 
-    if (decS === 60) { decS = 0; decM += 1}
-    if (decM === 60) { decM = 0; decD += 1}
+    const { ra, dec } = raDec
+
+    let raH  = Math.floor(ra)
+    const raDecimal  = ra  - raH
+    let { min: raM,  sec: raS  } = decimalToMinutesSeconds(raDecimal)
+
     if (raS  === 60) { raS  = 0; raM  += 1}
     if (raM  === 60) { raM  = 0; raH  += 1}
 
-    return `RA ${
-        raH.toString().padStart(2, "0")}h ${
-        raM.toString().padStart(2, "0")}m ${
-        raS.toString().padStart(2, "0")}s ` 
-    + `Dec ${
-        (decD >= 0) ?  "+" + decD.toString().padStart(2, "0") :
-        "-" + decD.toString().substring(1).padStart(2, "0")}\u00b0 ${
-        decM.toString().padStart(2, "0")}' ${
-        decS.toString().padStart(2, "0")}"`
+    const raString = `${raH.toString().padStart(2, "0")}h ${
+                        raM.toString().padStart(2, "0")}m ${
+                        raS.toString().padStart(2, "0")}s` 
+
+    function getDecString(positiveDec) {
+        let decD = Math.floor(positiveDec)
+        const decDecimal = positiveDec - decD
+        let { min: decM, sec: decS } = decimalToMinutesSeconds(decDecimal)
+    
+        if (decS === 60) { decS = 0; decM += 1}
+        if (decM === 60) { decM = 0; decD += 1}
+
+        return `${decD.toString().padStart(2, "0")}\u00b0 ${
+                  decM.toString().padStart(2, "0")}' ${
+                  decS.toString().padStart(2, "0")}"`
+    }
+
+    const decString = dec > 0 ? "+" + getDecString(dec) :
+        (dec === 0 ?  "+" + getDecString(dec) : "-" + getDecString(-dec))
+
+    return `RA ${raString} Dec ${decString}`
 }
 
 /**
