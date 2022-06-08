@@ -374,7 +374,7 @@ class SkyParallelLineSegment extends SkyObject {
 
         // Deal with the discontinuity about RA = 24h (2 * PI)
 
-        let visibleRegion1,visibleRegion2, lineSegment1, lineSegment2;
+        let visibleRegion1, visibleRegion2, lineSegment1, lineSegment2;
 
         if (raRadVisibleMin > raRadVisibleMax) {
             visibleRegion1 = [0, raRadVisibleMax]
@@ -417,7 +417,9 @@ class SkyParallelLineSegment extends SkyObject {
                     svs.centerY + positionTransformed.y, 
                     minorAxisLength, 
                     majorAxisLength, 
-                    angle, startAngle + startOff, startAngle + stopOff
+                    angle, 
+                    (normalTransformed.y < 0) ? startAngle + startOff : stopAngle - stopOff, 
+                    (normalTransformed.y < 0) ? startAngle + stopOff  : stopAngle - startOff,
                 );
                 ctx.strokeStyle = svs.colors.parallelColor
                 ctx.lineWidth = 1

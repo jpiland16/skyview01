@@ -74,7 +74,6 @@ async function loadConstBnd(svs) {
             ))
         }
     }
-    // svs.objects.push(new SkyParallelLineSegment(22.5, 0.5, 11.5))
     svs.objects.push(...objects)
     svs.needsUpdate = true
 }
