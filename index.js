@@ -4,7 +4,8 @@ class SkyViewState {
      */
     constructor(ctx) {
 
-        this.quaternion = Quaternion.identity()
+        this.quaternion = Quaternion.fromString(localStorage.getItem(
+            "quaternion")) || Quaternion.identity()
         this.ctx = ctx
         this.pointerLocked = false
         this.needsUpdate = 
@@ -17,7 +18,7 @@ class SkyViewState {
         /** @type {SkyObject[]} */ this.objects = []
         /** @type {Star[]} */      this.stars = []
 
-        this.zoom = 1
+        this.zoom = Number(localStorage.getItem("zoom")) || 1
         this.starFactor = 1
         this.dpr = window.devicePixelRatio || 1
         this.colorSchemes = createColorSchemes(this)
@@ -310,12 +311,21 @@ function raDecToString(raDec) {
  */
 function updateCanvas(svs) {
     if (svs.needsUpdate) {
+        saveState(svs)
         clearCanvas(svs)
         svs.refreshRaDec()
         showPosition(svs)
         svs.drawAll()
         svs.needsUpdate = false
     }
+}
+
+/**
+ * @param {SkyViewState} svs
+ */
+function saveState(svs) {
+    localStorage.setItem("quaternion", svs.quaternion.toString())
+    localStorage.setItem("zoom", svs.zoom)
 }
 
 /**

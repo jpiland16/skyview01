@@ -205,10 +205,23 @@ class SkyRadius extends SkyObject {
      * @param {Vector} endpoint
      * @param {string} color
      */
-    constructor(endpoint, color = svs.colorScheme.lineColor) {
+    constructor(endpoint, color = "black") {
         super()
         this.endpoint = endpoint
         this.color = color
+    }
+
+    /**
+     * @param {number} ra - right ascension in hours
+     * @param {number} dec - declination in degrees
+     * @param {string} color
+     */
+    static fromRaDec(ra, dec, color) {
+        return new SkyRadius(new Vector(
+              Math.cos(dec / 180 * Math.PI) * Math.cos((ra + 6) / 12 * Math.PI), 
+            - Math.sin(dec / 180 * Math.PI),
+            - Math.cos(dec / 180 * Math.PI) * Math.sin((ra + 6) / 12 * Math.PI)
+        ), color)
     }
 
     /**
@@ -232,13 +245,20 @@ class SkyRadius extends SkyObject {
      }
 }
 
-class SkyMeridianLineSegment extends SkyObject {
+class SkyGreatCircleSegment extends SkyObject {
     /**
-     * @param {Vector} normal
+     * @param {number} ra1  - right ascension 1 in hours
+     * @param {number} dec1 - declination 1 in degrees
+     * @param {number} ra2  - right ascension 2 in hours
+     * @param {number} dec2 - declination 2 in degrees
      */
-    constructor(normal) {
+    constructor(ra1, dec1, ra2, dec2) {
         super()
-        this.normal = normal
+        this.position1 = raDecToPosition({ ra: ra1, dec: dec1 })
+        this.position2 = raDecToPosition({ ra: ra2, dec: dec2 })
+        const normalTemp = this.position1.crossProduct(this.position2)
+        this.normal = normalTemp.scale(1 / normalTemp.length)
+        this.maxAngleSubtended = this.position1.getAngleTo(this.position2)
     }
 
     /**
@@ -248,33 +268,77 @@ class SkyMeridianLineSegment extends SkyObject {
      */
     draw(svs) {
 
-        if (!svs.ui.has("globe")) return
+        if (!svs.ui.has("constellation-boundaries")) return
 
         const ctx = svs.ctx
+
+        const pos1transformed = this.position1.transformByQuaternion(
+            svs.quaternion)
+        const pos2transformed = this.position2.transformByQuaternion(
+            svs.quaternion)
+
+        let startOff, stopOff, flipped;
+
+        // if (pos1transformed.z > 0 && pos2transformed.z > 0) return
 
         const normalTransformed = this.normal.transformByQuaternion(
             svs.quaternion).scale(svs.sizeBorderless)
 
+        const cosineDistance = normalTransformed.getCosineDistance(
+            new Vector(0, 0, 1))
+
         const majorAxisLength = 1 * (svs.sizeBorderless)
-        const minorAxisLength = Math.abs(normalTransformed.getCosineDistance(
-            new Vector(0, 0, 1))) * (svs.sizeBorderless)
+        const minorAxisLength = Math.abs(cosineDistance) * (svs.sizeBorderless)
         
         const normalCollapsed = normalTransformed.collapseToXY()
 
         const negator = (normalCollapsed.y > 0) ? -1 : 1
 
-        const angle = positiveModulo(
+        const theta = positiveModulo(
             normalCollapsed.length === 0 ? 0 :
                 normalCollapsed.getAngleTo(new Vector(-1, 0, 0)) * negator,
             Math.PI
         )
-        
-        let startAngle = - Math.PI / 2
-        let stopAngle = Math.PI / 2
-        if ((normalTransformed.z * normalTransformed.x > 0 && angle >= Math.PI / 2) || (normalTransformed.z * normalTransformed.x < 0 && angle < Math.PI / 2)) {
+
+        const phi = Math.acos(cosineDistance)
+        const circleMidpointVec = new Vector(
+            - Math.cos(phi) * Math.cos(theta),
+            - Math.cos(phi) * Math.sin(theta), 
+            - Math.sin(phi)
+        )
+
+        if (negator === -1) {
+            circleMidpointVec.x = - circleMidpointVec.x
+            circleMidpointVec.y = - circleMidpointVec.y
+        }
+
+        window.negator = negator
+
+        //
+
+        /**
+         * @param {Vector} vec 
+         * @param {Vector} vecXY 
+         * @param {number} offsetAngle
+         */
+        function getPositionOnEllipse(vec) {
+            if (vec.z > 0) return Math.PI / 2
+            return Math.PI - vec.getAngleTo(circleMidpointVec)
+        }
+
+        let startAngle = getPositionOnEllipse(pos1transformed)
+        let stopAngle  = getPositionOnEllipse(pos2transformed)
+
+        if (negator === -1) {
             startAngle += Math.PI
             stopAngle  += Math.PI
         }
+
+        window.startAngle = startAngle * 180 / Math.PI
+        window.stopAngle = stopAngle * 180 / Math.PI
+        window.circleStartVec = circleMidpointVec
+        window.startAngle2 = circleMidpointVec.getAngleTo(pos1transformed) * 180 / Math.PI
+
 
         ctx.beginPath()
         ctx.ellipse(
@@ -282,13 +346,38 @@ class SkyMeridianLineSegment extends SkyObject {
             svs.centerY, 
             minorAxisLength, 
             majorAxisLength, 
-            angle,
+            theta,
             startAngle, stopAngle
-            // 0, 2 * Math.PI
         );
         ctx.strokeStyle = svs.colors.meridianColor
-        ctx.lineWidth = 1
+        ctx.lineWidth = 10
         ctx.stroke()
+
+        //
+
+        ctx.beginPath()
+        ctx.ellipse(
+            svs.centerX, 
+            svs.centerY, 
+            minorAxisLength, 
+            majorAxisLength, 
+            theta,
+            0, 2 * Math.PI
+        );
+        ctx.strokeStyle = svs.colors.meridianColor
+        ctx.lineWidth = 2
+        ctx.stroke()
+
+        ctx.beginPath()
+        ctx.moveTo(svs.centerX, svs.centerY)
+        ctx.lineTo(
+            circleMidpointVec.x * svs.size + svs.centerX, 
+            circleMidpointVec.y * svs.size + svs.centerY
+        )
+        if (circleMidpointVec.z > 0) ctx.lineWidth = 3; else ctx.lineWidth = 1
+        ctx.strokeStyle = "green"
+        ctx.stroke()
+
     }
 }
 

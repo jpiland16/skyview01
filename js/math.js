@@ -60,6 +60,19 @@ class Vector {
     }
 
     /**
+     * Calculates the cross product of this vector times `o`.
+     * 
+     * @param {Vector} o
+     */
+    crossProduct(o) {
+        return new Vector(
+            this.y * o.z - this.z * o.y,
+            this.z * o.x - this.x * o.z,
+            this.x * o.y - this.y * o.x,
+        )
+    }
+
+    /**
      * Calculates the cosine distance between this vector and `o`.
      * 
      * @param {Vector} o
@@ -101,6 +114,15 @@ class Quaternion {
 
     static identity() {
         return new Quaternion(0, 0, 0, 1)
+    }
+
+    /**
+     * @param {string} s
+     */
+    static fromString(s) {
+        if (!s) return undefined
+        const a = s.split(",")
+        return new Quaternion(a[0], a[1], a[2], a[3])
     }
 
     /**
@@ -177,6 +199,10 @@ class Quaternion {
         const axis = new Vector(this.x, this.y, this.z).scale(
             1 / Math.sin(angle / 2))
         return { axis, angle }
+    }
+
+    toString() {
+        return `${this.x},${this.y},${this.z},${this.w}`
     }
 
     get vectorPart() {
