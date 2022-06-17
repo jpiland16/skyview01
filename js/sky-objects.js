@@ -294,25 +294,23 @@ class SkyGreatCircleSegment extends SkyObject {
 
         const negator = (normalCollapsed.y > 0) ? -1 : 1
 
-        const theta = positiveModulo(
+        let theta = positiveModulo(
             normalCollapsed.length === 0 ? 0 :
                 normalCollapsed.getAngleTo(new Vector(-1, 0, 0)) * negator,
             Math.PI
         )
 
         const phi = Math.acos(cosineDistance)
-        const circleMidpointVec = new Vector(
-            - Math.cos(phi) * Math.cos(theta),
-            - Math.cos(phi) * Math.sin(theta), 
-            - Math.sin(phi)
+        let circleOneFourthVec = new Vector(
+            - Math.cos(Math.PI / 2 - theta),
+              Math.sin(Math.PI / 2 - theta),
+              0
         )
 
-        if (negator === -1) {
-            circleMidpointVec.x = - circleMidpointVec.x
-            circleMidpointVec.y = - circleMidpointVec.y
-        }
-
         window.negator = negator
+        window.theta = theta * 180 / Math.PI
+
+        window.test = normalTransformed.z < 0
 
         //
 
@@ -323,21 +321,35 @@ class SkyGreatCircleSegment extends SkyObject {
          */
         function getPositionOnEllipse(vec) {
             if (vec.z > 0) return Math.PI / 2
-            return Math.PI - vec.getAngleTo(circleMidpointVec)
+            return Math.PI / 2 + vec.getAngleTo(circleOneFourthVec)
         }
 
         let startAngle = getPositionOnEllipse(pos1transformed)
         let stopAngle  = getPositionOnEllipse(pos2transformed)
 
-        if (negator === -1) {
-            startAngle += Math.PI
-            stopAngle  += Math.PI
+        if (negator === -1 && circleOneFourthVec.y > 0) {
+            startAngle = Math.PI - startAngle
+            stopAngle  = Math.PI - stopAngle
+        }
+
+        if (negator === -1 && theta > Math.PI / 2) {
+            startAngle = Math.PI - startAngle
+            stopAngle  = Math.PI - stopAngle
+        }
+
+        if (normalTransformed.z < 0) {
+            startAngle = Math.PI - startAngle
+            stopAngle  = Math.PI - stopAngle
+        }
+
+        if (positiveModulo(stopAngle - startAngle, 2 * Math.PI) > Math.PI) {
+            [startAngle, stopAngle] = [stopAngle, startAngle]
         }
 
         window.startAngle = startAngle * 180 / Math.PI
         window.stopAngle = stopAngle * 180 / Math.PI
-        window.circleStartVec = circleMidpointVec
-        window.startAngle2 = circleMidpointVec.getAngleTo(pos1transformed) * 180 / Math.PI
+        window.circleStartVec = circleOneFourthVec
+        window.n = normalTransformed
 
 
         ctx.beginPath()
@@ -371,10 +383,10 @@ class SkyGreatCircleSegment extends SkyObject {
         ctx.beginPath()
         ctx.moveTo(svs.centerX, svs.centerY)
         ctx.lineTo(
-            circleMidpointVec.x * svs.size + svs.centerX, 
-            circleMidpointVec.y * svs.size + svs.centerY
+            circleOneFourthVec.x * svs.size + svs.centerX, 
+            circleOneFourthVec.y * svs.size + svs.centerY
         )
-        if (circleMidpointVec.z > 0) ctx.lineWidth = 3; else ctx.lineWidth = 1
+        if (circleOneFourthVec.z > 0) ctx.lineWidth = 3; else ctx.lineWidth = 1
         ctx.strokeStyle = "green"
         ctx.stroke()
 
