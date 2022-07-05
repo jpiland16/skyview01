@@ -331,6 +331,14 @@ class SkyGreatCircleSegment extends SkyObject {
         let startAngle = getDistanceToOneFourthVec(pos1transformed)
         let stopAngle  = getDistanceToOneFourthVec(pos2transformed)
 
+        window.startAngle = startAngle * 180 / Math.PI
+        window.stopAngle = stopAngle * 180 / Math.PI
+
+        const cropTo = Math.abs(startAngle - stopAngle) > Math.PI ? 0 : Math.PI
+
+        if (startAngle > Math.PI) startAngle = cropTo
+        if (stopAngle  > Math.PI) stopAngle  = cropTo
+
         startAngle += Math.PI / 2
         stopAngle  += Math.PI / 2
 
@@ -342,10 +350,6 @@ class SkyGreatCircleSegment extends SkyObject {
         if (positiveModulo(stopAngle - startAngle, 2 * Math.PI) > Math.PI) {
             [startAngle, stopAngle] = [stopAngle, startAngle]
         }
-
-        window.startAngle = startAngle * 180 / Math.PI
-        window.stopAngle = stopAngle * 180 / Math.PI
-
 
         ctx.beginPath()
         ctx.ellipse(
