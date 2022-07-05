@@ -56,7 +56,9 @@ async function loadConstBnd(svs) {
         const point2 = points[i+1]
         if (!point2.const2) continue // Starting a new constellation 
         if (point1.ra === point2.ra) {
-            // objects.push("part of a great circle")
+            objects.push(new SkyGreatCircleSegment(
+                point1.ra, point1.dec, point2.ra, point2.dec
+            ))
         } else {
             let raStart = point1.ra
             let raStop  = point2.ra
@@ -74,11 +76,7 @@ async function loadConstBnd(svs) {
             ))
         }
     }
-    // svs.objects.push(new SkyGreatCircleSegment(3.406, 49.88, 22.96, 30.39))
-    // svs.objects.push(new SkyGreatCircleSegment(1, 10, 1, 80))
     svs.objects.push(new SkyGreatCircleSegment(0, 45, 0, 75))
-    svs.objects.push(SkyRadius.fromRaDec(0, 45, "blue"))
-    svs.objects.push(SkyRadius.fromRaDec(0, 75, "red"))
     svs.objects.push(...objects)
     svs.needsUpdate = true
 }

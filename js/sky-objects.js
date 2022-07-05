@@ -326,13 +326,8 @@ class SkyGreatCircleSegment extends SkyObject {
             return angle
         }
 
-        window.v = circleOneFourthVec
-
         let startAngle = getDistanceToOneFourthVec(pos1transformed)
         let stopAngle  = getDistanceToOneFourthVec(pos2transformed)
-
-        window.startAngle = startAngle * 180 / Math.PI
-        window.stopAngle = stopAngle * 180 / Math.PI
 
         const cropTo = Math.abs(startAngle - stopAngle) > Math.PI ? 0 : Math.PI
 
@@ -360,35 +355,10 @@ class SkyGreatCircleSegment extends SkyObject {
             theta,
             startAngle, stopAngle
         );
-        ctx.strokeStyle = svs.colors.meridianColor
-        ctx.lineWidth = 10
+        ctx.strokeStyle = svs.colors.meridianColor        
+        ctx.setLineDash([2, 4])
         ctx.stroke()
-
-        //
-
-        ctx.beginPath()
-        ctx.ellipse(
-            svs.centerX, 
-            svs.centerY, 
-            minorAxisLength, 
-            majorAxisLength, 
-            theta,
-            0, 2 * Math.PI
-        );
-        ctx.strokeStyle = svs.colors.meridianColor
-        ctx.lineWidth = 2
-        ctx.stroke()
-
-        ctx.beginPath()
-        ctx.moveTo(svs.centerX, svs.centerY)
-        ctx.lineTo(
-            circleOneFourthVec.x * svs.size + svs.centerX, 
-            circleOneFourthVec.y * svs.size + svs.centerY
-        )
-        if (circleOneFourthVec.z > 0) ctx.lineWidth = 3; else ctx.lineWidth = 1
-        ctx.strokeStyle = "green"
-        ctx.stroke()
-
+        ctx.setLineDash([0, 0])
     }
 }
 
