@@ -10,13 +10,11 @@ class SkyViewState {
         this.pointerLocked = false
         this.needsUpdate = 
         this.refreshRaDec()
-        this.ui = new UI([
-            "crosshairs", "star-names", "star-sizes", "globe", "stars",
-            "constellation-boundaries"
-        ])
+        this.ui = UI.fromLocalStorage() || UI.default()
         
         /** @type {SkyObject[]} */ this.objects = []
         /** @type {Star[]} */      this.stars = []
+        /** @type {Object<string, ConstellationBoundaryLine[]>} */ this.constBndLines = {}
 
         this.zoom = Number(localStorage.getItem("zoom")) || 1
         this.starFactor = 1
@@ -147,9 +145,41 @@ class SkyViewState {
     /**
      * @param {Star} s
      */
-     addStar(s) {
+    addStar(s) {
         this.stars.push(s)
     }
+
+    /**
+     * Returns the name of the constellation that the crosshairs are
+     * currently positioned over.
+     */
+    getCurrentConstellation() {
+        const possibleConstellations = []
+        for (const constellationName in this.constBndLines) {
+            const raValues = this.constBndLines[constellationName].filter((cbLine) => 
+                cbLine.containsDec(this.raDec.dec)
+            ).map((cbLine) => 
+                // Map lines to shifted right ascension values
+                positiveModulo(cbLine.ra - this.raDec.ra, 24)
+            ) 
+            const leftBoundaries = raValues.filter((i) => i > 12)
+            if (leftBoundaries.length === 0) continue;
+            const constellationLeftBoundary = Math.min(...leftBoundaries)
+            const constellationRightBoundary = Math.min(...raValues)
+            const constellationSpan = constellationLeftBoundary - constellationRightBoundary
+            // const constellationSpan = Math.max(...raValues) - Math.min(...raValues)
+            if (constellationSpan > 12) {
+                // console.log(constellationName, (24 - constellationLeftBoundary) + constellationRightBoundary)
+                possibleConstellations.push({
+                    name: constellationName,
+                    dist: (24 - constellationLeftBoundary) + constellationRightBoundary
+                })
+            }
+        }
+        possibleConstellations.sort((a, b) => a.dist - b.dist)
+        window.cn = (possibleConstellations[0] || {name: undefined}).name
+    }
+
 }
 
 class UI {
@@ -158,6 +188,24 @@ class UI {
      */
     constructor(properties = []) {
         this.properties = properties
+    }
+
+    static fromLocalStorage() {
+        const ui = localStorage.getItem("ui")
+        try {
+            return new UI(ui.split(" "))
+        } catch {
+            return undefined
+        }
+    }
+
+    static default() {
+        const ui = new UI([
+            "crosshairs", "star-names", "star-sizes", "globe", "stars",
+            "constellation-boundaries"
+        ])
+        ui.save()
+        return ui
     }
     
     /**
@@ -177,6 +225,11 @@ class UI {
         } else {
             this.properties.push(item)
         }
+        this.save()
+    }
+
+    save() {
+        localStorage.setItem("ui", this.properties.join(" "))
     }
 }
 
@@ -256,6 +309,7 @@ function loaded() {
  * @param {SkyViewState} svs
  */
 function showPosition(svs) {
+    const currentConstellation = svs.getCurrentConstellation()
     stat(raDecToString(svs.raDec))    
 }
 

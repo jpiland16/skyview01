@@ -355,7 +355,8 @@ class SkyGreatCircleSegment extends SkyObject {
             theta,
             startAngle, stopAngle
         );
-        ctx.strokeStyle = svs.colors.meridianColor        
+        ctx.strokeStyle = svs.colors.meridianColor    
+        ctx.lineWidth = 3    
         ctx.setLineDash([2, 4])
         ctx.stroke()
         ctx.setLineDash([0, 0])
@@ -492,7 +493,7 @@ class SkyParallelLineSegment extends SkyObject {
                     (normalTransformed.y < 0) ? startAngle + stopOff  : stopAngle - startOff,
                 );
                 ctx.strokeStyle = svs.colors.parallelColor
-                ctx.lineWidth = 1
+                ctx.lineWidth = 3
                 ctx.setLineDash([2, 4])
                 ctx.stroke()
                 ctx.setLineDash([0, 0])

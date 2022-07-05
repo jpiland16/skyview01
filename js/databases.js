@@ -18,6 +18,31 @@ class ConstellationBoundaryPoint {
     }
 }
 
+class ConstellationBoundaryLine {
+    /**
+     * (A line of right ascension)
+     * 
+     * @param {number} decMin - minimum declination in degrees
+     * @param {number} decMax - maximum declination in degrees
+     * @param {number} ra     - right ascension in hours
+     * @param {string} constellationName
+     */
+    constructor(decMin, decMax, ra) {
+        this.decMin = decMin
+        this.decMax = decMax
+        this.ra = ra
+    }
+
+    /**
+     * Determine whether the given parallel of declination is intersected by this line.
+     * 
+     * @param {number} dec - declination in hours
+     */
+    containsDec(dec) {
+        return (this.decMin <= dec && dec < this.decMax)
+    }
+}
+
 /**
  * @param {string} record
  */
@@ -49,15 +74,22 @@ function processConstBndPtRecord(record) {
 async function loadConstBnd(svs) {
     const r = await (await fetch(CONST_BND_URL)).text()
     const points = r.split("\n").slice(0, -1).map(processConstBndPtRecord)
-    /** @type {SkyObject[]} */ const objects = []
+    /** @type {SkyObject[]} */                 const objects = []
     for (let i = 0; i < points.length - 1; i++) {
-    // for (let i = 0; i < 38; i++) {
         const point1 = points[i]
         const point2 = points[i+1]
         if (!point2.const2) continue // Starting a new constellation 
         if (point1.ra === point2.ra) {
             objects.push(new SkyGreatCircleSegment(
                 point1.ra, point1.dec, point2.ra, point2.dec
+            ))
+            const decMin = Math.min(point1.dec, point2.dec)
+            const decMax = Math.max(point1.dec, point2.dec)
+            if (!svs.constBndLines[point1.const1]) {
+                svs.constBndLines[point1.const1] = []
+            }
+            svs.constBndLines[point1.const1].push(new ConstellationBoundaryLine(
+                decMin, decMax, point1.ra
             ))
         } else {
             let raStart = point1.ra

@@ -226,6 +226,8 @@ function raDecToPosition(raDec) {
 }
 
 /**
+ * Returns the right ascension in hours and declination in degrees.
+ * 
  * @param {Vector} position - Unit vector pointing to the object in 
  *                            the celestial sphere
  */

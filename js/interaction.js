@@ -21,6 +21,7 @@
                 svs.starFactor = 1
                 svs.setColorScheme("red-grad")
                 svs.updateGradients()
+                svs.ui = UI.default()
                 svs.needsUpdate = true
                 break
             case "n":
@@ -50,6 +51,9 @@
             case "g":
                 svs.ui.toggle("globe")
                 svs.needsUpdate = true
+                break
+            case "q":
+                svs.ui.toggle("reversed-control")
                 break
             case "l":
                 const transformedY = new Vector(0, -1, 0)
@@ -170,7 +174,10 @@ function onMouseMove(svs, keyStates, e) {
         let controlScale = 1
         if (keyStates["shift"]) controlScale = SV_CONTROL_SCALE
 
-        if (keyStates["control"] || keyStates["meta"]) {
+        const flipControlStyle = svs.ui.has("reversed-control")
+        const ctrlKeyHeld = keyStates["control"] || keyStates["meta"]
+
+        if ((ctrlKeyHeld && !flipControlStyle) || (!ctrlKeyHeld && flipControlStyle )) {
 
             const xRotationQuaternion = Quaternion.fromAxisAngle(
                 1, 0, 0, e.movementY / SV_MOVEMENT_SCALE / svs.zoom /
@@ -184,7 +191,6 @@ function onMouseMove(svs, keyStates, e) {
             svs.needsUpdate = true
 
         } else {
-            // WIP
             
             const movementVector = new Vector(e.movementX, e.movementY, 0)
             const transformedY = new Vector(0, -1, 0)
@@ -225,7 +231,7 @@ function onMouseMove(svs, keyStates, e) {
  * @param {SkyViewState} svs
  * @param {number} scale
  */
- function rotatePositiveRa(svs, scale) {
+function rotatePositiveRa(svs, scale) {
     const polRotationQuaternion = Quaternion.fromAxisAngle(
         0, -1, 0, scale)
     svs.quaternion = svs.quaternion.premultiply(polRotationQuaternion)
@@ -237,7 +243,7 @@ function onMouseMove(svs, keyStates, e) {
  * @param {SkyViewState} svs
  * @param {number} scale
  */
- function rotateNegativeRa(svs, scale) {
+function rotateNegativeRa(svs, scale) {
     const polRotationQuaternion = Quaternion.fromAxisAngle(
         0, -1, 0, - scale)
     svs.quaternion = svs.quaternion.premultiply(polRotationQuaternion)
@@ -252,7 +258,7 @@ function onMouseMove(svs, keyStates, e) {
  * @param {SkyViewState} svs
  * @param {number} scale
  */
- function rotatePositiveDec(svs, scale) {
+function rotatePositiveDec(svs, scale) {
     const targetVector = new Vector(0, 0, -1).transformByQuaternion(
         svs.quaternion.inverse())
     const angleToSouthPole = targetVector.getAngleTo(
@@ -270,7 +276,7 @@ function onMouseMove(svs, keyStates, e) {
  * @param {SkyViewState} svs
  * @param {number} scale
  */
- function rotateNegativeDec(svs, scale) {
+function rotateNegativeDec(svs, scale) {
     const targetVector = new Vector(0, 0, -1).transformByQuaternion(
         svs.quaternion.inverse())
     const angleToNorthPole = targetVector.getAngleTo(
