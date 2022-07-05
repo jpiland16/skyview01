@@ -277,8 +277,6 @@ class SkyGreatCircleSegment extends SkyObject {
         const pos2transformed = this.position2.transformByQuaternion(
             svs.quaternion)
 
-        let startOff, stopOff, flipped;
-
         // if (pos1transformed.z > 0 && pos2transformed.z > 0) return
 
         const normalTransformed = this.normal.transformByQuaternion(
@@ -300,7 +298,12 @@ class SkyGreatCircleSegment extends SkyObject {
             Math.PI
         )
 
-        const phi = Math.acos(cosineDistance)
+        const angle = positiveModulo(
+            normalCollapsed.length === 0 ? 0 :
+                normalCollapsed.getAngleTo(new Vector(-1, 0, 0)) * negator,
+            Math.PI
+        )
+
         let circleOneFourthVec = new Vector(
             - Math.cos(Math.PI / 2 - theta),
               Math.sin(Math.PI / 2 - theta),
@@ -316,35 +319,22 @@ class SkyGreatCircleSegment extends SkyObject {
 
         /**
          * @param {Vector} vec 
-         * @param {Vector} vecXY 
-         * @param {number} offsetAngle
          */
-        function getPositionOnEllipse(vec) {
-            if (vec.z > 0) return Math.PI / 2
-            return Math.PI / 2 + vec.getAngleTo(circleOneFourthVec)
+        function getDistanceToOneFourthVec(vec) {
+            let angle = vec.getAngleTo(circleOneFourthVec)
+            if (vec.z > 0) angle = 2 * Math.PI - angle 
+            return angle
         }
 
-        let startAngle = getPositionOnEllipse(pos1transformed)
-        let stopAngle  = getPositionOnEllipse(pos2transformed)
+        window.v = circleOneFourthVec
 
-        if (stopAngle - startAngle > Math.PI / 2) {
-            // Occurs when the two angles to circleOneFourthVec are
-            // obtuse and have opposite orientations
-            stopAngle = Math.PI - stopAngle
-            startAngle = Math.PI - stopAngle
-        }
+        let startAngle = getDistanceToOneFourthVec(pos1transformed)
+        let stopAngle  = getDistanceToOneFourthVec(pos2transformed)
 
-        if (negator === -1 && circleOneFourthVec.y > 0) {
-            startAngle = Math.PI - startAngle
-            stopAngle  = Math.PI - stopAngle
-        }
+        startAngle += Math.PI / 2
+        stopAngle  += Math.PI / 2
 
-        if (negator === -1 && theta > Math.PI / 2) {
-            startAngle = Math.PI - startAngle
-            stopAngle  = Math.PI - stopAngle
-        }
-
-        if (normalTransformed.z < 0) {
+        if (!((normalTransformed.z * normalTransformed.x > 0 && angle >= Math.PI / 2) || (normalTransformed.z * normalTransformed.x < 0 && angle < Math.PI / 2))) {
             startAngle = Math.PI - startAngle
             stopAngle  = Math.PI - stopAngle
         }
@@ -355,8 +345,6 @@ class SkyGreatCircleSegment extends SkyObject {
 
         window.startAngle = startAngle * 180 / Math.PI
         window.stopAngle = stopAngle * 180 / Math.PI
-        window.circleStartVec = circleOneFourthVec
-        window.n = normalTransformed
 
 
         ctx.beginPath()
