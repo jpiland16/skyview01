@@ -327,6 +327,13 @@ class SkyGreatCircleSegment extends SkyObject {
         let startAngle = getPositionOnEllipse(pos1transformed)
         let stopAngle  = getPositionOnEllipse(pos2transformed)
 
+        if (stopAngle - startAngle > Math.PI / 2) {
+            // Occurs when the two angles to circleOneFourthVec are
+            // obtuse and have opposite orientations
+            stopAngle = Math.PI - stopAngle
+            startAngle = Math.PI - stopAngle
+        }
+
         if (negator === -1 && circleOneFourthVec.y > 0) {
             startAngle = Math.PI - startAngle
             stopAngle  = Math.PI - stopAngle

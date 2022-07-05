@@ -24,7 +24,7 @@ class Vector {
     }
 
     /**
-     * Returns a new vector resulting from scaling this vector down by 
+     * Returns a new vector resulting from scaling this vector by 
      * a factor of `r`. Does not change the original vector.
      * 
      * @param {number} r
