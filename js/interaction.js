@@ -19,6 +19,7 @@
                 svs.quaternion = Quaternion.identity()
                 svs.zoom = 1
                 svs.starFactor = 1
+                svs.setColorScheme("red-grad")
                 svs.updateGradients()
                 svs.needsUpdate = true
                 break

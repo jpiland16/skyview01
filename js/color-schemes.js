@@ -61,7 +61,7 @@ function createColorSchemes(svs) {
     return {                         // BG       TEXT     LINE     MERID    PARLL    STAR     HTML
         "red-grad":    new ColorScheme("black", redGrad, "red",   redGrad, redGrad, redGrad, red   ), 
         "grn-grad":    new ColorScheme("black", grnGrad, "green", grnGrad, grnGrad, grnGrad, green ), 
-        "blu-grad":    new ColorScheme("black", bluGrad,  blue,   bluGrad, bluGrad, bluGrad, blue    ),
+        "blu-grad":    new ColorScheme("black", bluGrad,  blue,   bluGrad, bluGrad, bluGrad, blue  ),
         "blk-grad":    new ColorScheme("black", whtGrad, "white", whtGrad, whtGrad, whtGrad, white ),
         "wht-grad":    new ColorScheme("white", blkGrad, "black", blkGrad, blkGrad, blkGrad, black ), 
         "red":         new ColorScheme("black", "red",   "red",   "red",   "red",   "red",   red   ),

@@ -23,7 +23,7 @@ class SkyViewState {
         this.dpr = window.devicePixelRatio || 1
         this.colorSchemes = createColorSchemes(this)
         this.colorSchemeNames = Object.getOwnPropertyNames(this.colorSchemes)
-        this.setColorSchemeIndex(0)
+        this.setColorScheme(localStorage.getItem("colorSchemeName") || "red-grad")
 
     }
 
@@ -103,7 +103,9 @@ class SkyViewState {
      */
     setColorSchemeIndex(index) {
         this.colorSchemeIndex = index
-        this.selectedColorScheme = this.colorSchemeNames[index]
+        const colorSchemeName = this.colorSchemeNames[index]
+        localStorage.setItem("colorSchemeName", colorSchemeName)
+        this.selectedColorScheme = colorSchemeName
         document.body.style.color = this.colors.htmlTextColor
         document.getElementById("stat").style.backgroundColor = 
             this.colors.bgColor
