@@ -108,7 +108,6 @@ async function loadConstBnd(svs) {
             ))
         }
     }
-    svs.objects.push(new SkyGreatCircleSegment(0, 45, 0, 75))
     svs.objects.push(...objects)
     svs.needsUpdate = true
 }

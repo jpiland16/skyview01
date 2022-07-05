@@ -154,30 +154,39 @@ class SkyViewState {
      * currently positioned over.
      */
     getCurrentConstellation() {
-        const possibleConstellations = []
         for (const constellationName in this.constBndLines) {
+
             const raValues = this.constBndLines[constellationName].filter((cbLine) => 
                 cbLine.containsDec(this.raDec.dec)
-            ).map((cbLine) => 
-                // Map lines to shifted right ascension values
-                positiveModulo(cbLine.ra - this.raDec.ra, 24)
-            ) 
-            const leftBoundaries = raValues.filter((i) => i > 12)
-            if (leftBoundaries.length === 0) continue;
-            const constellationLeftBoundary = Math.min(...leftBoundaries)
-            const constellationRightBoundary = Math.min(...raValues)
-            const constellationSpan = constellationLeftBoundary - constellationRightBoundary
-            // const constellationSpan = Math.max(...raValues) - Math.min(...raValues)
-            if (constellationSpan > 12) {
-                // console.log(constellationName, (24 - constellationLeftBoundary) + constellationRightBoundary)
-                possibleConstellations.push({
-                    name: constellationName,
-                    dist: (24 - constellationLeftBoundary) + constellationRightBoundary
-                })
+            ).map((cbLine) => cbLine.ra).sort()
+            if (raValues.length === 0) continue;
+
+            const smallRaValues = raValues.filter((v) => v <= 12)
+            const maxSmall = Math.min(...smallRaValues)
+            const largeRaValues = raValues.filter((v) => v >  12)
+            const minLarge = Math.min(...largeRaValues)
+
+            const constellationStart = (minLarge - maxSmall < 12 || smallRaValues.length === 0 || largeRaValues.length === 0) ? 
+                Math.min(...raValues) : minLarge
+            const shiftedRaValues = raValues.map((v) =>
+                positiveModulo(v - constellationStart, 24)
+            )
+            const shiftedStartPoint = positiveModulo(this.raDec.ra - constellationStart, 24)
+
+            const crossingCount = shiftedRaValues.filter((v) => v < shiftedStartPoint).length
+            if (crossingCount % 2 === 1) {
+                // IMPORTANT NOTE: for RA 23h - 8h Dec +86.5deg - 88deg
+                // AND for RA 3h30m - 7h40m Dec -82.5deg - -85deg
+                // there are two sets of boundaries that meet these criteria,
+                // namely (Cep/UMi) and (Men/Oct), respectively.
+                // Fortunately, Cep and Men both come first in the list 
+                // (because it is sorted alphabetically), 
+                // otherwise the below line would not cover those two cases.
+                return constellationName
             }
         }
-        possibleConstellations.sort((a, b) => a.dist - b.dist)
-        window.cn = (possibleConstellations[0] || {name: undefined}).name
+        if (this.raDec.dec >=  86.5) return "UMi"
+        if (this.raDec.dec <= -82.5) return "Oct"
     }
 
 }
@@ -310,7 +319,7 @@ function loaded() {
  */
 function showPosition(svs) {
     const currentConstellation = svs.getCurrentConstellation()
-    stat(raDecToString(svs.raDec))    
+    stat(raDecToString(svs.raDec) + " | " + currentConstellation)    
 }
 
 /**
