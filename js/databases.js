@@ -2,7 +2,7 @@ const HYG_DB_URL = "/data/hygfull.csv"
 const CONST_BND_URL = "/data/constbnd.dat.txt"
 const CONST_LINES_URL = "/data/constln.json"
 
-const CONST_REGEX = /([ \d]\d\.\d{5}) ([\+-]\d{2}\.\d{5}) (\w+)(?: {2}(\w+))?/
+const CONST_REGEX = /([ \d]\d\.\d{5}) ([\+-]\d{2}\.\d{5}) (\w+)(?: {1,2}(\w+))?/
 
 class ConstellationBoundaryPoint {
     /**
