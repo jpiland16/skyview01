@@ -251,9 +251,11 @@ class SkyGreatCircleSegment extends SkyObject {
      * @param {number} dec1 - declination 1 in degrees
      * @param {number} ra2  - right ascension 2 in hours
      * @param {number} dec2 - declination 2 in degrees
+     * @param {boolean} isConstBnd - whether this is a constellation boundary
      */
-    constructor(ra1, dec1, ra2, dec2) {
+    constructor(ra1, dec1, ra2, dec2, isConstBnd = true) {
         super()
+        this.isConstBnd = isConstBnd
         this.position1 = raDecToPosition({ ra: ra1, dec: dec1 })
         this.position2 = raDecToPosition({ ra: ra2, dec: dec2 })
         const normalTemp = this.position1.crossProduct(this.position2)
@@ -268,7 +270,8 @@ class SkyGreatCircleSegment extends SkyObject {
      */
     draw(svs) {
 
-        if (!svs.ui.has("constellation-boundaries")) return
+        if (this.isConstBnd && !svs.ui.has("constellation-boundaries")) return
+        if (!this.isConstBnd && !svs.ui.has("constellation-lines")) return
 
         const ctx = svs.ctx
 
@@ -356,8 +359,8 @@ class SkyGreatCircleSegment extends SkyObject {
             startAngle, stopAngle
         );
         ctx.strokeStyle = svs.colors.meridianColor    
-        ctx.lineWidth = 3    
-        ctx.setLineDash([2, 4])
+        ctx.lineWidth = this.isConstBnd ? 3 : 2
+        ctx.setLineDash(this.isConstBnd ? [2, 4] : [2, 8])
         ctx.stroke()
         ctx.setLineDash([0, 0])
     }

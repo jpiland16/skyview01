@@ -1,5 +1,6 @@
 const HYG_DB_URL = "/data/hygfull.csv"
 const CONST_BND_URL = "/data/constbnd.dat.txt"
+const CONST_LINES_URL = "/data/constln.json"
 
 const CONST_REGEX = /([ \d]\d\.\d{5}) ([\+-]\d{2}\.\d{5}) (\w+)(?: {2}(\w+))?/
 
@@ -74,7 +75,7 @@ function processConstBndPtRecord(record) {
 async function loadConstBnd(svs) {
     const r = await (await fetch(CONST_BND_URL)).text()
     const points = r.split("\n").slice(0, -1).map(processConstBndPtRecord)
-    /** @type {SkyObject[]} */                 const objects = []
+    /** @type {SkyObject[]} */ const objects = []
     for (let i = 0; i < points.length - 1; i++) {
         const point1 = points[i]
         const point2 = points[i+1]
@@ -119,4 +120,25 @@ async function loadHYG(svs) {
     const r = await (await fetch(HYG_DB_URL)).text()
     r.split("\n").slice(1).map(processStarRecord).forEach(s => svs.addStar(s))
     svs.needsUpdate = true
+}
+
+/**
+ * @param {SkyViewState} svs
+ */
+async function loadConstLines(svs) {
+    const r = await (await fetch(CONST_LINES_URL)).json()
+    /** @type {SkyObject[]} */ const objects = []
+    for (const name in r) {
+        lines = r[name]
+        for (const points of lines) {
+            for (let i = 0; i < points.length - 1; i++) {
+                objects.push(new SkyGreatCircleSegment(
+                    points[i][0],   points[i][1],
+                    points[i+1][0], points[i+1][1],
+                    false
+                ))
+            }
+        }
+    }
+    svs.objects.push(...objects)
 }

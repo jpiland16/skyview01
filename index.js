@@ -213,7 +213,7 @@ class UI {
     static default() {
         const ui = new UI([
             "crosshairs", "star-names", "star-sizes", "globe", "stars",
-            "constellation-boundaries"
+            "constellation-boundaries", "constellation-lines"
         ])
         ui.save()
         return ui
@@ -260,6 +260,7 @@ function loaded() {
 
     loadHYG(svs)
     loadConstBnd(svs)
+    loadConstLines(svs)
 
     function animate() {
         handlePressedKeys(keyStates, svs)

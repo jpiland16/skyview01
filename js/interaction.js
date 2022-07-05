@@ -55,6 +55,10 @@
             case "q":
                 svs.ui.toggle("reversed-control")
                 break
+            case "L":
+                svs.ui.toggle("constellation-lines")
+                svs.needsUpdate = true
+                break
             case "l":
                 const transformedY = new Vector(0, -1, 0)
                     .transformByQuaternion(svs.quaternion).collapseToXY()
