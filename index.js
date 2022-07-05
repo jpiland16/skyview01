@@ -185,8 +185,10 @@ class SkyViewState {
                 return constellationName
             }
         }
+        if (Object.getOwnPropertyNames(this.constBndLines).length === 0) return "loading constellations..."
         if (this.raDec.dec >=  86.5) return "UMi"
         if (this.raDec.dec <= -82.5) return "Oct"
+        return "constellation unknown"
     }
 
 }
