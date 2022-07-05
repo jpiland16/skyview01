@@ -277,7 +277,7 @@ class SkyGreatCircleSegment extends SkyObject {
         const pos2transformed = this.position2.transformByQuaternion(
             svs.quaternion)
 
-        // if (pos1transformed.z > 0 && pos2transformed.z > 0) return
+        if (pos1transformed.z > 0 && pos2transformed.z > 0) return
 
         const normalTransformed = this.normal.transformByQuaternion(
             svs.quaternion).scale(svs.sizeBorderless)
