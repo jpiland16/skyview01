@@ -209,6 +209,10 @@ function onMouseMove(svs, keyStates, e) {
             xRot = rotatedMovement.x
             yRot = rotatedMovement.y
 
+            // Increase rotation speed near the poles, otherwise it looks slow
+            const currentDec = svs.raDec.dec
+            const polarMovementScale = 2 - Math.cos(currentDec * Math.PI / 180)
+
             if (yRot > 0) {
                 rotatePositiveDec(svs, yRot / SV_MOVEMENT_SCALE / svs.zoom /
                     controlScale)
@@ -219,10 +223,10 @@ function onMouseMove(svs, keyStates, e) {
 
             if (xRot > 0) {
                 rotatePositiveRa(svs, xRot / SV_MOVEMENT_SCALE / svs.zoom /
-                    controlScale)
+                    controlScale * polarMovementScale)
             } else {
                 rotateNegativeRa(svs, - xRot / SV_MOVEMENT_SCALE / svs.zoom /
-                    controlScale)
+                    controlScale * polarMovementScale)
             }
         }
         
