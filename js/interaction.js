@@ -55,6 +55,13 @@
             case "q":
                 svs.ui.toggle("reversed-control")
                 break
+            case "r":
+                svs.ui.toggle("decimal-display")
+                svs.needsUpdate = true
+                break
+            case "m":
+                svs.ui.toggle("movie")
+                break
             case "L":
                 svs.ui.toggle("constellation-lines")
                 svs.needsUpdate = true
@@ -97,6 +104,9 @@ function handlePressedKeys(keyStates, svs) {
         }  
         if (keyStates["p"] && !keyStates["o"]) {
             rotateNegativeRa(svs, scale)
+        }
+        if (svs.ui.has("movie")) {
+            rotateNegativeRa(svs, 1 / SV_KEY_MOVEMENT_SCALE / svs.zoom / SV_CONTROL_SCALE)
         }
         if (keyStates["d"] && !keyStates["f"]) {
             rotatePositiveDec(svs, scale)

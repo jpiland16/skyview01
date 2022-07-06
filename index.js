@@ -1,5 +1,3 @@
-const USE_OLD_BND = false
-
 class SkyViewState {
     /**
      * @param {CanvasRenderingContext2D} ctx
@@ -325,7 +323,7 @@ function loaded() {
  */
 function showPosition(svs) {
     const currentConstellation = svs.getCurrentConstellation()
-    stat(raDecToString(svs.raDec) + " | " + currentConstellation)    
+    stat(raDecToString(svs.raDec, svs.ui.has("decimal-display")) + " | " + currentConstellation)    
 }
 
 /**
@@ -340,12 +338,24 @@ function decimalToMinutesSeconds(decimal) {
 
 /**
  * @param {Object} raDec
- * @param {number} raDec.ra
- * @param {number} raDec.dec
+ * @param {number} raDec.ra  - right ascension in hours
+ * @param {number} raDec.dec - declination in degrees
+ * @param {boolean} decimal  - whether to output as [deg|hr]/min/sec or 
+ *                             as a decimal value
  */
-function raDecToString(raDec) {
+function raDecToString(raDec, decimal = false) {
 
     const { ra, dec } = raDec
+
+    if (decimal) {
+        const decimalPlaces = 6
+        const raRounded = ra.toFixed(decimalPlaces)
+        const decRounded = dec.toFixed(decimalPlaces)
+        const raString = raRounded.padStart(decimalPlaces + 3, "0") + "h"
+        const decString = (dec < 0 ? "-" : "+") 
+            + decRounded.padStart(decimalPlaces + 3, "0") + "\u00b0"
+        return `RA ${raString} Dec ${decString}`
+    }
 
     let raH  = Math.floor(ra)
     const raDecimal  = ra  - raH
