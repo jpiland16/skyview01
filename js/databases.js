@@ -1,8 +1,10 @@
 const HYG_DB_URL = "/data/hygfull.csv"
 const CONST_BND_URL = "/data/constbnd.dat.txt"
+const CONST_BND_URL_2 = "/data/bound_20.txt"
 const CONST_LINES_URL = "/data/constln.json"
 
 const CONST_REGEX = /([ \d]\d\.\d{5}) ([\+-]\d{2}\.\d{5}) (\w+)(?: {1,2}(\w+))?/
+const CONST_REGEX_2 = /(\d?\d\.\d{7})\s([\+-]\d{2}\.\d{7})\|(\w{3,4})/
 
 class ConstellationBoundaryPoint {
     /**
@@ -70,6 +72,14 @@ function processConstBndPtRecord(record) {
 }
 
 /**
+ * @param {string} record
+ */
+ function processConstBndPtRecord2(record) {
+    const matches = CONST_REGEX_2.exec(record).slice(1)
+    return new ConstellationBoundaryPoint(...matches)
+}
+
+/**
  * @param {SkyViewState} svs
  */
 async function loadConstBnd(svs) {
@@ -81,9 +91,12 @@ async function loadConstBnd(svs) {
         const point2 = points[i+1]
         if (!point2.const2) continue // Starting a new constellation 
         if (point1.ra === point2.ra) {
-            objects.push(new SkyGreatCircleSegment(
-                point1.ra, point1.dec, point2.ra, point2.dec
-            ))
+            // Using updated boundaries now
+            if (USE_OLD_BND) { // false
+                objects.push(new SkyGreatCircleSegment(
+                    point1.ra, point1.dec, point2.ra, point2.dec
+                ))
+            }
             const decMin = Math.min(point1.dec, point2.dec)
             const decMax = Math.max(point1.dec, point2.dec)
             if (!svs.constBndLines[point1.const1]) {
@@ -103,10 +116,13 @@ async function loadConstBnd(svs) {
                 raStart = point2.ra
                 raStop = point1.ra
             }
-            objects.push(new SkyParallelLineSegment(
-                point1.dec,
-                raStart, raStop
-            ))
+            // Using updated boundaries now
+            if (USE_OLD_BND) { // false
+                objects.push(new SkyParallelLineSegment(
+                    point1.dec,
+                    raStart, raStop
+                ))
+            }
         }
     }
     svs.objects.push(...objects)
@@ -138,6 +154,31 @@ async function loadConstLines(svs) {
                     false
                 ))
             }
+        }
+    }
+    svs.objects.push(...objects)
+}
+
+/**
+ * Loads more up-to-date boundaries than originally.
+ * 
+ * @param {SkyViewState} svs
+ */
+async function loadConstBnd2(svs) {
+    const r = await(await fetch(CONST_BND_URL_2)).text()
+    /** @type {SkyObject[]} */ const objects = []
+
+    const points = r.split("\n").slice(7, -2).map(processConstBndPtRecord2)
+    let currentConstellation = points[0].const1
+    for (let i = 0; i < points.length - 1; i++) {
+        if (points[i + 1].const1 != currentConstellation) {
+            currentConstellation = points[i + 1].const1
+            continue
+        }
+        if (!USE_OLD_BND) { // true
+            objects.push(new SkyGreatCircleSegment(
+                points[i].ra, points[i].dec, points[i + 1].ra, points[i + 1].dec
+            ))
         }
     }
     svs.objects.push(...objects)

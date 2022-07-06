@@ -1,3 +1,5 @@
+const USE_OLD_BND = false
+
 class SkyViewState {
     /**
      * @param {CanvasRenderingContext2D} ctx
@@ -17,7 +19,7 @@ class SkyViewState {
         /** @type {Object<string, ConstellationBoundaryLine[]>} */ this.constBndLines = {}
 
         this.zoom = Number(localStorage.getItem("zoom")) || 1
-        this.starFactor = 1
+        this.starFactor = Number(localStorage.getItem("starFactor")) || 1
         this.dpr = window.devicePixelRatio || 1
         this.colorSchemes = createColorSchemes(this)
         this.colorSchemeNames = Object.getOwnPropertyNames(this.colorSchemes)
@@ -260,6 +262,7 @@ function loaded() {
 
     loadHYG(svs)
     loadConstBnd(svs)
+    loadConstBnd2(svs)
     loadConstLines(svs)
 
     function animate() {
@@ -394,6 +397,7 @@ function updateCanvas(svs) {
 function saveState(svs) {
     localStorage.setItem("quaternion", svs.quaternion.toString())
     localStorage.setItem("zoom", svs.zoom)
+    localStorage.setItem("starFactor", svs.starFactor)
 }
 
 /**

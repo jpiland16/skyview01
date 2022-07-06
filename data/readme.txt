@@ -5,3 +5,4 @@ Sources:
  - abbrev.json:      Manually transcribed from https://www.iau.org/public/themes/constellations/ (5 June 2022)
  - constlines.json   https://github.com/ofrohn/d3-celestial/tree/master/data/constellations.lines.json (5 July 2022)
  - constln.json      Converted from https://github.com/ofrohn/d3-celestial/tree/master/data/constellations.lines.json (5 July 2022)
+ - bound_20.txt      https://cdsarc.cds.unistra.fr/viz-bin/nph-Cat/txt.gz?VI/49/bound_20.dat.gz (5 July 2022)
