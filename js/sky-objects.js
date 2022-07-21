@@ -260,7 +260,6 @@ class SkyGreatCircleSegment extends SkyObject {
         this.position2 = raDecToPosition({ ra: ra2, dec: dec2 })
         const normalTemp = this.position1.crossProduct(this.position2)
         this.normal = normalTemp.scale(1 / normalTemp.length)
-        this.maxAngleSubtended = this.position1.getAngleTo(this.position2)
     }
 
     /**
@@ -358,6 +357,89 @@ class SkyGreatCircleSegment extends SkyObject {
             theta,
             startAngle, stopAngle
         );
+        ctx.strokeStyle = svs.colors.meridianColor    
+        ctx.lineWidth = this.isConstBnd ? 3 : 2
+        ctx.setLineDash(this.isConstBnd ? [2, 4] : [2, 8])
+        ctx.stroke()
+        ctx.setLineDash([0, 0])
+    }
+}
+
+class SkyLineElement extends SkyObject {
+    /**
+     * Should only be used for VERY SMALL lengths. 
+     * Draws straight lines on the user's screen.
+     * 
+     * @param {number} ra1  - right ascension 1 in hours
+     * @param {number} dec1 - declination 1 in degrees
+     * @param {number} ra2  - right ascension 2 in hours
+     * @param {number} dec2 - declination 2 in degrees
+     * @param {boolean} isConstBnd - whether this is a constellation boundary
+     */
+    constructor(ra1, dec1, ra2, dec2, isConstBnd = true) {
+        super()
+        this.isConstBnd = isConstBnd
+        this.position1 = raDecToPosition({ ra: ra1, dec: dec1 })
+        this.position2 = raDecToPosition({ ra: ra2, dec: dec2 })
+    }
+
+    /**
+     * @override
+     * 
+     * @param {SkyViewState} svs
+     */
+    draw(svs) {
+
+        if (this.isConstBnd && !svs.ui.has("constellation-boundaries")) return
+        if (!this.isConstBnd && !svs.ui.has("constellation-lines")) return
+
+        const pos1transformed = this.position1.transformByQuaternion(
+            svs.quaternion)
+        const pos2transformed = this.position2.transformByQuaternion(
+            svs.quaternion)
+
+        if (pos1transformed.z > 0 && pos2transformed.z > 0) return
+
+        let startPoint, stopPoint;
+
+        if (pos1transformed.z > 0 || pos2transformed.z > 0) {
+            let belowPlane, abovePlane;
+            if (pos1transformed.z > 0) {
+                belowPlane = pos2transformed
+                abovePlane = pos1transformed
+            } else {
+                belowPlane = pos1transformed
+                abovePlane = pos2transformed
+            }
+            
+            const deltaX = abovePlane.x - belowPlane.x
+            const deltaY = abovePlane.y - belowPlane.y
+            const deltaZ = abovePlane.z - belowPlane.z // != 0, see enclosing if
+            
+            const dXdZ = deltaX / deltaZ
+            const dYdZ = deltaY / deltaZ
+            const zDist = - belowPlane.z // > 0
+
+            startPoint = belowPlane
+            stopPoint = new Vector(
+                belowPlane.x + dXdZ * zDist,
+                belowPlane.y + dYdZ * zDist,
+                0
+            )
+        } else {
+            startPoint = pos1transformed.scale(svs.size)
+            stopPoint  = pos2transformed.scale(svs.size)
+        }
+
+        startPoint.x += svs.centerX
+        startPoint.y += svs.centerY
+        stopPoint.x += svs.centerX
+        stopPoint.y += svs.centerY
+
+        const ctx = svs.ctx
+        ctx.beginPath()
+        ctx.moveTo(startPoint.x, startPoint.y)
+        ctx.lineTo(stopPoint.x, stopPoint.y)
         ctx.strokeStyle = svs.colors.meridianColor    
         ctx.lineWidth = this.isConstBnd ? 3 : 2
         ctx.setLineDash(this.isConstBnd ? [2, 4] : [2, 8])

@@ -175,8 +175,10 @@ async function loadConstBnd2(svs) {
             currentConstellation = points[i + 1].const1
             continue
         }
+        const BndLineArtist = APPROX_BND_USING_LINES ? 
+            SkyLineElement : SkyGreatCircleSegment
         if (!USE_OLD_BND) { // true
-            objects.push(new SkyGreatCircleSegment(
+            objects.push(new BndLineArtist(
                 points[i].ra, points[i].dec, points[i + 1].ra, points[i + 1].dec
             ))
         }
