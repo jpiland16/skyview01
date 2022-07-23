@@ -647,7 +647,9 @@ class Star extends SkyObject {
         ctx.lineWidth = 1
         ctx.fill()
 
-        if (!svs.ui.has("star-names")) return
+        if (!svs.ui.has("star-names") && (
+            svs.nearestStar !== this || !svs.ui.has("extra")
+        )) return
 
         ctx.fillStyle = svs.colors.starColor
         ctx.font = `${28 }px Arial`

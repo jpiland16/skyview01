@@ -255,6 +255,26 @@ function getRegionOverlap(a, b) {
 }
 
 /**
+ * Used for comparison - calculates the "distance" 
+ * between one raDec and another.
+ * 
+ * @param {Object} raDec1
+ * @param {number} raDec1.ra  - right ascension in hours
+ * @param {number} raDec1.dec - declination in degrees
+ * @param {Object} raDec2
+ * @param {number} raDec2.ra  - right ascension in hours
+ * @param {number} raDec2.dec - declination in degrees
+ */
+function getRaDecDistance(raDec1, raDec2) {
+    let raDeltaHours = Math.abs(raDec2.ra - raDec1.ra)
+    if (raDeltaHours > 12) raDeltaHours = 24 - raDeltaHours
+    const decDeltaDegrees = Math.abs(raDec2.dec - raDec1.dec)
+    const raDeltaRad = raDeltaHours / 12 * Math.PI
+    const decDeltaRad = decDeltaDegrees / 180 * Math.PI
+    return Math.sqrt(Math.pow(raDeltaRad, 2) + Math.pow(decDeltaRad, 2))
+}
+
+/**
  * Converts right ascension and declination from J2000 to B1875.
  * Algorithm source: Practical Astronomy with a Calculator
  * 

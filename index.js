@@ -23,6 +23,7 @@ class SkyViewState {
         this.colorSchemeNames = Object.getOwnPropertyNames(this.colorSchemes)
         this.setColorScheme(localStorage.getItem("colorSchemeName") || "red-grad")
         this.currentConstellation = "constellation unknown"
+        /** @type{Star} */ this.nearestStar = undefined
 
         this.abbreviations = {}
     }
@@ -130,13 +131,25 @@ class SkyViewState {
         this.colorSchemes = createColorSchemes(this)        
     }
 
+    getFilteredStars() {
+        return this.stars.filter((s) => 
+            s.magnitude < this.zoom * 2 * this.starFactor &&
+            this.raDecIsPossiblyInView(s.raDec)
+        )
+    }
+
     drawAll() {
         this.objects.forEach(o => o.draw(this))
         if (!this.ui.has("stars")) return
-        this.stars.filter((s) => 
-            s.magnitude < this.zoom * 2 * this.starFactor &&
-            this.raDecIsPossiblyInView(s.raDec)
-        ).forEach(s => s.draw(this))
+        this.getFilteredStars().forEach(s => s.draw(this))
+    }
+
+    getNearestStar() {
+        const stars = this.getFilteredStars().filter((s) => s.name !== "")
+        if (stars.length === 0) return undefined
+        stars.sort((s1, s2) => getRaDecDistance(s1.raDec, this.raDec) 
+            - getRaDecDistance(s2.raDec, this.raDec))
+        return stars[0]
     }
 
     /**
@@ -337,13 +350,18 @@ function showPosition(svs) {
     if (currentConstellation.length === 3) currentConstellation += "\u00a0"
     stat(raDecToString(svs.raDec, svs.ui.has("decimal-display")) + " | " + 
         currentConstellation)
+
+    if (!svs.ui.has("extra")) return // don't do additional calculations
         
     const extra1 = document.getElementById("extra1")
     const extra2 = document.getElementById("extra2")
-
+    
     const fullConstNames = svs.abbreviations[svs.currentConstellation] || ["?"]
-    extra1.innerText = `${currentConstellation}: ${fullConstNames[0]}`
+    const nearestStar = svs.getNearestStar() || { name: "" }
+    svs.nearestStar = nearestStar
 
+    extra1.innerText = `Constellation: ${currentConstellation}| ${fullConstNames[0]}`
+    extra2.innerText = `Nearest star: \u00a0${nearestStar.name}`
 }
 
 /**

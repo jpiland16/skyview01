@@ -23,7 +23,7 @@ html, body {
     padding: 6px;
     border-top: 2px solid;
     border-right: 2px solid;
-    width: 50%;
+    width: calc(min(300px, 50%));
 }
 
 #extra div {
