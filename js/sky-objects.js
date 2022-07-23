@@ -422,12 +422,12 @@ class SkyLineElement extends SkyObject {
             const dYdZ = deltaY / deltaZ
             const zDist = - belowPlane.z // > 0
 
-            startPoint = belowPlane
+            startPoint = belowPlane.scale(svs.size)
             stopPoint = new Vector(
                 belowPlane.x + dXdZ * zDist,
                 belowPlane.y + dYdZ * zDist,
                 0
-            )
+            ).scale(svs.size)
         } else {
             startPoint = pos1transformed.scale(svs.size)
             stopPoint  = pos2transformed.scale(svs.size)
