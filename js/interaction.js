@@ -79,6 +79,14 @@
                 svs.ui.toggle("highlight-const")
                 svs.needsUpdate = true
                 break
+            case "w":
+                svs.ui.toggle("stat")
+                svs.needsUpdate = true
+                break
+            case "e":
+                svs.ui.toggle("extra")
+                svs.needsUpdate = true
+                break
         }
     }
 }

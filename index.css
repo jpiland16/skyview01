@@ -12,6 +12,24 @@ html, body {
     top: 0px;
     left: 0px;
     padding: 6px;
+    border-bottom: 2px solid;
+    border-right: 2px solid;
+}
+
+#extra {
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    padding: 6px;
+    border-top: 2px solid;
+    border-right: 2px solid;
+    width: 50%;
+}
+
+#extra div {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 canvas {

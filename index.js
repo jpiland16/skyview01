@@ -24,6 +24,7 @@ class SkyViewState {
         this.setColorScheme(localStorage.getItem("colorSchemeName") || "red-grad")
         this.currentConstellation = "constellation unknown"
 
+        this.abbreviations = {}
     }
 
     get colors() {
@@ -107,6 +108,8 @@ class SkyViewState {
         this.selectedColorScheme = colorSchemeName
         document.body.style.color = this.colors.htmlTextColor
         document.getElementById("stat").style.backgroundColor = 
+            this.colors.bgColor
+        document.getElementById("extra").style.backgroundColor = 
             this.colors.bgColor
         this.needsUpdate = true
     }
@@ -218,7 +221,8 @@ class UI {
     static default() {
         const ui = new UI([
             "crosshairs", "star-names", "star-sizes", "globe", "stars",
-            "constellation-boundaries", "constellation-lines"
+            "constellation-boundaries", "constellation-lines", 
+            "highlight-const", "stat", "extra"
         ])
         ui.save()
         return ui
@@ -267,6 +271,7 @@ function loaded() {
     loadConstBnd(svs)
     loadConstBnd2(svs)
     loadConstLines(svs)
+    loadConstAbbrev((abbrev) => svs.abbreviations = abbrev)
 
     function animate() {
         handlePressedKeys(keyStates, svs)
@@ -328,8 +333,17 @@ function loaded() {
  */
 function showPosition(svs) {
     svs.currentConstellation = svs.getCurrentConstellation()
+    let currentConstellation = svs.currentConstellation
+    if (currentConstellation.length === 3) currentConstellation += "\u00a0"
     stat(raDecToString(svs.raDec, svs.ui.has("decimal-display")) + " | " + 
-        svs.currentConstellation)    
+        currentConstellation)
+        
+    const extra1 = document.getElementById("extra1")
+    const extra2 = document.getElementById("extra2")
+
+    const fullConstNames = svs.abbreviations[svs.currentConstellation] || ["?"]
+    extra1.innerText = `${currentConstellation}: ${fullConstNames[0]}`
+
 }
 
 /**
@@ -396,6 +410,16 @@ function raDecToString(raDec, decimal = false) {
 /**
  * @param {SkyViewState} svs
  */
+function hideShowOverlays(svs) {
+    document.getElementById("stat").style.display = (svs.ui.has("stat")) ? 
+        "block" : "none"
+    document.getElementById("extra").style.display = (svs.ui.has("extra")) ? 
+        "block" : "none"
+}
+
+/**
+ * @param {SkyViewState} svs
+ */
 function updateCanvas(svs) {
     if (svs.needsUpdate) {
         saveState(svs)
@@ -403,6 +427,7 @@ function updateCanvas(svs) {
         svs.refreshRaDec()
         showPosition(svs)
         svs.drawAll()
+        hideShowOverlays(svs)
         svs.needsUpdate = false
     }
 }

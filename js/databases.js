@@ -2,6 +2,7 @@ const HYG_DB_URL = "/data/hygfull.csv"
 const CONST_BND_URL = "/data/constbnd.dat.txt"
 const CONST_BND_URL_2 = "/data/bound_20_gen.txt"
 const CONST_LINES_URL = "/data/constln.json"
+const CONST_ABBREV_URL = "/data/abbrev.json"
 
 const CONST_REGEX = /([ \d]\d\.\d{5}) ([\+-]\d{2}\.\d{5}) (\w+)?(?: {1,2}(\w+))?/
 
@@ -167,4 +168,12 @@ async function loadConstBnd2(svs) {
         ))
     }
     svs.objects.push(...objects)
+}
+
+/**
+ * @param {Function} onReady
+ */
+async function loadConstAbbrev(onReady) {
+    const abbrev = await(await fetch(CONST_ABBREV_URL)).json()
+    onReady(abbrev)
 }
