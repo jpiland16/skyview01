@@ -8,7 +8,7 @@ class SkyViewState {
             "quaternion")) || Quaternion.identity()
         this.ctx = ctx
         this.pointerLocked = false
-        this.needsUpdate = 
+        this.needsUpdate = false
         this.refreshRaDec()
         this.ui = UI.fromLocalStorage() || UI.default()
         
@@ -17,11 +17,11 @@ class SkyViewState {
         /** @type {Object<string, ConstellationBoundaryLine[]>} */ this.constBndLines = {}
 
         this.zoom = Number(localStorage.getItem("zoom")) || 1
-        this.starFactor = Number(localStorage.getItem("starFactor")) || 1
+        this.starFactor = Number(localStorage.getItem("starFactor")) || 1.6
         this.dpr = window.devicePixelRatio || 1
         this.colorSchemes = createColorSchemes(this)
         this.colorSchemeNames = Object.getOwnPropertyNames(this.colorSchemes)
-        this.setColorScheme(localStorage.getItem("colorSchemeName") || "red-grad")
+        this.setColorScheme(localStorage.getItem("colorSchemeName") || "blk-grad")
         this.currentConstellation = "constellation unknown"
         /** @type{Star} */ this.nearestStar = undefined
 
@@ -234,8 +234,8 @@ class UI {
 
     static default() {
         const ui = new UI([
-            "crosshairs", "star-names", "star-sizes", "globe", "stars",
-            "constellation-boundaries", "constellation-lines", 
+            "crosshairs", "star-sizes", "globe", "stars",
+            "constellation-lines", "star-opacity",
             "highlight-const", "stat", "extra"
         ])
         ui.save()

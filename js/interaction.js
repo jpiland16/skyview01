@@ -18,8 +18,8 @@
             case ")":
                 svs.quaternion = Quaternion.identity()
                 svs.zoom = 1
-                svs.starFactor = 1
-                svs.setColorScheme("red-grad")
+                svs.starFactor = 1.6
+                svs.setColorScheme("blk-grad")
                 svs.updateGradients()
                 svs.ui = UI.default()
                 svs.needsUpdate = true
