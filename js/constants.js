@@ -12,7 +12,3 @@ const SV_CROSSHAIR_SIZE = 35
 const SV_CROSSHAIR_SPACE = 7
 const SV_VIEW_RA_ROTATION = Math.PI / 2
 const SV_CONTROL_SCALE = 20
-
-const USE_OLD_BND = false // B1800 - uses lines of RA/dec
-const APPROX_BND_USING_LINES = true // lines are faster than small elliptical 
-                                    // segments

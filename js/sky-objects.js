@@ -247,20 +247,19 @@ class SkyRadius extends SkyObject {
 
 class SkyGreatCircleSegment extends SkyObject {
     /**
+     * Currently, draws constellation lines (connecting star to star) ONLY.
+     * 
      * @param {number} ra1  - right ascension 1 in hours
      * @param {number} dec1 - declination 1 in degrees
      * @param {number} ra2  - right ascension 2 in hours
      * @param {number} dec2 - declination 2 in degrees
-     * @param {boolean} isConstBnd - whether this is a constellation boundary
      */
-    constructor(ra1, dec1, ra2, dec2, isConstBnd = true, name = "") {
+    constructor(ra1, dec1, ra2, dec2) {
         super()
-        this.isConstBnd = isConstBnd
         this.position1 = raDecToPosition({ ra: ra1, dec: dec1 })
         this.position2 = raDecToPosition({ ra: ra2, dec: dec2 })
         const normalTemp = this.position1.crossProduct(this.position2)
         this.normal = normalTemp.scale(1 / normalTemp.length)
-        this.name = name
     }
 
     /**
@@ -270,8 +269,7 @@ class SkyGreatCircleSegment extends SkyObject {
      */
     draw(svs) {
 
-        if (this.isConstBnd && !svs.ui.has("constellation-boundaries")) return
-        if (!this.isConstBnd && !svs.ui.has("constellation-lines")) return
+        if (!svs.ui.has("constellation-lines")) return
 
         const ctx = svs.ctx
 
@@ -359,8 +357,8 @@ class SkyGreatCircleSegment extends SkyObject {
             startAngle, stopAngle
         );
         ctx.strokeStyle = svs.colors.meridianColor    
-        ctx.lineWidth = this.isConstBnd ? 3 : 2
-        ctx.setLineDash(this.isConstBnd ? [2, 4] : [2, 8])
+        ctx.lineWidth = 3
+        ctx.setLineDash([2, 8])
         ctx.stroke()
         ctx.setLineDash([0, 0])
     }
@@ -370,18 +368,17 @@ class SkyLineElement extends SkyObject {
     /**
      * Should only be used for VERY SMALL lengths. 
      * Draws straight lines on the user's screen.
+     * Currently, draws constellation lines ONLY.
      * 
      * @param {number} ra1  - right ascension 1 in hours
      * @param {number} dec1 - declination 1 in degrees
      * @param {number} ra2  - right ascension 2 in hours
      * @param {number} dec2 - declination 2 in degrees
-     * @param {boolean} isConstBnd - whether this is a constellation boundary
      * @param {string} c1 - constellation 1
      * @param {string} c2 - constellation 2
      */
-    constructor(ra1, dec1, ra2, dec2, isConstBnd = true, c1 = "", c2 = "") {
+    constructor(ra1, dec1, ra2, dec2, c1 = "", c2 = "") {
         super()
-        this.isConstBnd = isConstBnd
         this.position1 = raDecToPosition({ ra: ra1, dec: dec1 })
         this.position2 = raDecToPosition({ ra: ra2, dec: dec2 })
         this.c1 = c1
@@ -395,8 +392,7 @@ class SkyLineElement extends SkyObject {
      */
     draw(svs) {
 
-        if (this.isConstBnd && !svs.ui.has("constellation-boundaries")) return
-        if (!this.isConstBnd && !svs.ui.has("constellation-lines")) return
+        if (!svs.ui.has("constellation-boundaries")) return
 
         const pos1transformed = this.position1.transformByQuaternion(
             svs.quaternion)
@@ -449,10 +445,11 @@ class SkyLineElement extends SkyObject {
         ctx.beginPath()
         ctx.moveTo(startPoint.x, startPoint.y)
         ctx.lineTo(stopPoint.x, stopPoint.y)
-        ctx.strokeStyle = active ? "red" : svs.colors.meridianColor    
-        ctx.lineWidth = (this.isConstBnd ? 3 : 2) * (active ? 2 : 1)
-        ctx.setLineDash(this.isConstBnd ? [2, 4] : [2, 8])
+        ctx.strokeStyle = svs.colors.meridianColor    
+        ctx.lineWidth = 2.5 * (active ? 3 : 1)
+        ctx.lineCap = 'round';
         ctx.stroke()
+        ctx.lineCap = 'butt'
         ctx.setLineDash([0, 0])
     }
 }

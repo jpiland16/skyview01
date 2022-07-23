@@ -4,7 +4,6 @@ const CONST_BND_URL_2 = "/data/bound_20_gen.txt"
 const CONST_LINES_URL = "/data/constln.json"
 
 const CONST_REGEX = /([ \d]\d\.\d{5}) ([\+-]\d{2}\.\d{5}) (\w+)?(?: {1,2}(\w+))?/
-const CONST_REGEX_2 = /(\d?\d\.\d{7})\s([\+-]\d{2}\.\d{7})\|(\w{3,4})/
 
 class ConstellationBoundaryPoint {
     /**
@@ -72,14 +71,12 @@ function processConstBndPtRecord(record) {
 }
 
 /**
- * @param {string} record
- */
- function processConstBndPtRecord2(record) {
-    const matches = CONST_REGEX_2.exec(record).slice(1)
-    return new ConstellationBoundaryPoint(...matches)
-}
-
-/**
+ * For determination of which constellation the user is currently positioned 
+ * over ONLY. Not used to draw constellation boundary lines!
+ * 
+ * Current (J2000) position must be precessed to B1875 first
+ * before using these boundaries.
+ * 
  * @param {SkyViewState} svs
  */
 async function loadConstBnd(svs) {
@@ -91,12 +88,6 @@ async function loadConstBnd(svs) {
         const point2 = points[i+1]
         if (!point2.const2) continue // Starting a new constellation 
         if (point1.ra === point2.ra) {
-            // Using updated boundaries now
-            if (USE_OLD_BND) { // false
-                objects.push(new SkyGreatCircleSegment(
-                    point1.ra, point1.dec, point2.ra, point2.dec
-                ))
-            }
             const decMin = Math.min(point1.dec, point2.dec)
             const decMax = Math.max(point1.dec, point2.dec)
             if (!svs.constBndLines[point1.const1]) {
@@ -115,13 +106,6 @@ async function loadConstBnd(svs) {
             if (positiveModulo(raStop - raStart, 24) > 12) { 
                 raStart = point2.ra
                 raStop = point1.ra
-            }
-            // Using updated boundaries now
-            if (USE_OLD_BND) { // false
-                objects.push(new SkyParallelLineSegment(
-                    point1.dec,
-                    raStart, raStop
-                ))
             }
         }
     }
@@ -160,6 +144,9 @@ async function loadConstLines(svs) {
 }
 
 /**
+ * For drawing of constellation lines on the screen.
+ * Uses generated, interpolated points that are precessed from B1875 to J2000.
+ * 
  * Loads more up-to-date boundaries than originally.
  * 
  * @param {SkyViewState} svs
@@ -173,13 +160,11 @@ async function loadConstBnd2(svs) {
         const point1 = points[i]
         const point2 = points[i + 1]
         if (!point2.const2) continue
-        if (!USE_OLD_BND) { // true
-            objects.push(new SkyLineElement(
-                point1.ra, point1.dec, 
-                point2.ra, point2.dec,
-                true, point2.const1, point2.const2
-            ))
-        }
+        objects.push(new SkyLineElement(
+            point1.ra, point1.dec, 
+            point2.ra, point2.dec,
+            point2.const1, point2.const2
+        ))
     }
     svs.objects.push(...objects)
 }
