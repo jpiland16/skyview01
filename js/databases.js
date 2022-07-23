@@ -1,4 +1,4 @@
-const HYG_DB_URL = "/data/hygfull.csv"
+const HYG_DB_URL = "/data/hygfull2.csv"
 const CONST_BND_URL = "/data/constbnd.dat.txt"
 const CONST_BND_URL_2 = "/data/bound_20_gen.txt"
 const CONST_LINES_URL = "/data/constln.json"
@@ -58,7 +58,10 @@ function processStarRecord(record) {
     const bfName = s[5]
     const mag = s[10]
 
-    const name = properName === "" ? bfName : properName
+    let name = properName === "" ? bfName : properName
+    if (/^\d[A-Z]/.test(name)) name = name.slice(0, 1) + " " + name.slice(1)
+    if (/^\d\d[A-Z]/.test(name)) name = name.slice(0, 2) + " " + name.slice(2)
+    // while (name && /[0-9\s]/.test(name[0])) name = name.substring(1)
     return new Star(ra, dec, mag, name)
 
 }

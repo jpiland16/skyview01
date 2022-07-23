@@ -266,12 +266,9 @@ function getRegionOverlap(a, b) {
  * @param {number} raDec2.dec - declination in degrees
  */
 function getRaDecDistance(raDec1, raDec2) {
-    let raDeltaHours = Math.abs(raDec2.ra - raDec1.ra)
-    if (raDeltaHours > 12) raDeltaHours = 24 - raDeltaHours
-    const decDeltaDegrees = Math.abs(raDec2.dec - raDec1.dec)
-    const raDeltaRad = raDeltaHours / 12 * Math.PI
-    const decDeltaRad = decDeltaDegrees / 180 * Math.PI
-    return Math.sqrt(Math.pow(raDeltaRad, 2) + Math.pow(decDeltaRad, 2))
+    const pos1 = raDecToPosition(raDec1)
+    const pos2 = raDecToPosition(raDec2)
+    return pos1.getAngleTo(pos2)
 }
 
 /**

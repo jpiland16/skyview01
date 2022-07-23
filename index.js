@@ -25,7 +25,8 @@ class SkyViewState {
         this.currentConstellation = "constellation unknown"
         /** @type{Star} */ this.nearestStar = undefined
 
-        this.abbreviations = {}
+        this.constAbbreviations = {}
+        this.greekAbbreviations = {}
     }
 
     get colors() {
@@ -284,7 +285,10 @@ function loaded() {
     loadConstBnd(svs)
     loadConstBnd2(svs)
     loadConstLines(svs)
-    loadConstAbbrev((abbrev) => svs.abbreviations = abbrev)
+    loadConstAbbrev((abbrev) => {
+        svs.constAbbreviations = abbrev.constellations
+        svs.greekAbbreviations = abbrev.greekLetters
+    })
 
     function animate() {
         handlePressedKeys(keyStates, svs)
@@ -355,13 +359,54 @@ function showPosition(svs) {
         
     const extra1 = document.getElementById("extra1")
     const extra2 = document.getElementById("extra2")
-    
-    const fullConstNames = svs.abbreviations[svs.currentConstellation] || ["?"]
+
+    // Show constellation info
+
+    const fullConstNames = (
+        svs.constAbbreviations[svs.currentConstellation] || ["", ""])
+    const fullConstName = fullConstNames[0]
+
+    extra1.innerText = 
+        `Constellation: ${currentConstellation}| ${fullConstName}`
+    extra1.onclick = (e) => {
+        window.open("https://www.google.com/search?q=" + 
+        encodeURI(`${fullConstName.toLowerCase()} constellation`))
+        e.stopPropagation()
+    }
+
+    // Show star info
+
     const nearestStar = svs.getNearestStar() || { name: "" }
     svs.nearestStar = nearestStar
 
-    extra1.innerText = `Constellation: ${currentConstellation}| ${fullConstNames[0]}`
-    extra2.innerText = `Nearest star: \u00a0${nearestStar.name}`
+    const possibleConstName = nearestStar.name.slice(-3)
+    const hasConstName = Object.getOwnPropertyNames(svs.constAbbreviations)
+        .indexOf(possibleConstName) > -1
+
+    let starName = hasConstName ? 
+        nearestStar.name.slice(0, -3) : nearestStar.name
+    const constNameGenitive = hasConstName ? 
+        svs.constAbbreviations[possibleConstName][1] : ""
+
+    let firstLetterIndex = 0;
+    while (starName[firstLetterIndex] && !/[A-Z]/.test(starName[firstLetterIndex])) firstLetterIndex += 1
+    const greekName = starName.slice(firstLetterIndex, firstLetterIndex + 3)
+
+    if (Object.getOwnPropertyNames(svs.greekAbbreviations)
+            .indexOf(greekName) > -1)
+        starName = starName.slice(0, firstLetterIndex)
+            + svs.greekAbbreviations[greekName][1]
+            + starName.slice(firstLetterIndex + 3)
+
+    const fullStarName = starName + constNameGenitive
+    
+    extra2.innerText = `Nearest star: \u00a0${fullStarName}`
+
+    extra2.onclick =  (e) => {
+        window.open("https://www.google.com/search?q=" + 
+        encodeURI(`${fullStarName.toLowerCase()} star`))
+        e.stopPropagation()
+    }
 }
 
 /**

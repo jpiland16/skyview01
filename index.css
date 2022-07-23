@@ -26,10 +26,11 @@ html, body {
     width: calc(min(300px, 50%));
 }
 
-#extra div {
+#extra div.clickable {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    cursor: pointer;
 }
 
 canvas {
