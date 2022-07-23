@@ -170,9 +170,10 @@ async function loadConstBnd2(svs) {
 
     const points = r.split("\n").slice(7, -2).map(processConstBndPtRecord2)
     let currentConstellation = points[0].const1
-    for (let i = 0; i < points.length - 1; i++) {
-        if (points[i + 1].const1 != currentConstellation) {
-            currentConstellation = points[i + 1].const1
+    for (let i = 0; i < points.length; i++) {
+        const i2 = (i + 1) % points.length // connects last point to first point
+        if (points[i2].const1 != currentConstellation) {
+            currentConstellation = points[i2].const1
             continue
         }
         const BndLineArtist = APPROX_BND_USING_LINES ? 
@@ -180,7 +181,7 @@ async function loadConstBnd2(svs) {
         if (!USE_OLD_BND) { // true
             objects.push(new BndLineArtist(
                 points[i].ra, points[i].dec, 
-                points[i + 1].ra, points[i + 1].dec,
+                points[i2].ra, points[i2].dec,
                 true, currentConstellation
             ))
         }
