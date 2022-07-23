@@ -1,9 +1,9 @@
 const HYG_DB_URL = "/data/hygfull.csv"
 const CONST_BND_URL = "/data/constbnd.dat.txt"
-const CONST_BND_URL_2 = "/data/bound_20.txt"
+const CONST_BND_URL_2 = "/data/bound_20_gen.txt"
 const CONST_LINES_URL = "/data/constln.json"
 
-const CONST_REGEX = /([ \d]\d\.\d{5}) ([\+-]\d{2}\.\d{5}) (\w+)(?: {1,2}(\w+))?/
+const CONST_REGEX = /([ \d]\d\.\d{5}) ([\+-]\d{2}\.\d{5}) (\w+)?(?: {1,2}(\w+))?/
 const CONST_REGEX_2 = /(\d?\d\.\d{7})\s([\+-]\d{2}\.\d{7})\|(\w{3,4})/
 
 class ConstellationBoundaryPoint {
@@ -168,21 +168,16 @@ async function loadConstBnd2(svs) {
     const r = await(await fetch(CONST_BND_URL_2)).text()
     /** @type {SkyObject[]} */ const objects = []
 
-    const points = r.split("\n").slice(7, -2).map(processConstBndPtRecord2)
-    let currentConstellation = points[0].const1
-    for (let i = 0; i < points.length; i++) {
-        const i2 = (i + 1) % points.length // connects last point to first point
-        if (points[i2].const1 != currentConstellation) {
-            currentConstellation = points[i2].const1
-            continue
-        }
-        const BndLineArtist = APPROX_BND_USING_LINES ? 
-            SkyLineElement : SkyGreatCircleSegment
+    const points = r.split("\n").slice(0, -1).map(processConstBndPtRecord)
+    for (let i = 0; i < points.length - 1; i++) {
+        const point1 = points[i]
+        const point2 = points[i + 1]
+        if (!point2.const2) continue
         if (!USE_OLD_BND) { // true
-            objects.push(new BndLineArtist(
-                points[i].ra, points[i].dec, 
-                points[i2].ra, points[i2].dec,
-                true, currentConstellation
+            objects.push(new SkyLineElement(
+                point1.ra, point1.dec, 
+                point2.ra, point2.dec,
+                true, point2.const1, point2.const2
             ))
         }
     }

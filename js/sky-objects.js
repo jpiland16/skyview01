@@ -376,13 +376,16 @@ class SkyLineElement extends SkyObject {
      * @param {number} ra2  - right ascension 2 in hours
      * @param {number} dec2 - declination 2 in degrees
      * @param {boolean} isConstBnd - whether this is a constellation boundary
+     * @param {string} c1 - constellation 1
+     * @param {string} c2 - constellation 2
      */
-    constructor(ra1, dec1, ra2, dec2, isConstBnd = true, name = "") {
+    constructor(ra1, dec1, ra2, dec2, isConstBnd = true, c1 = "", c2 = "") {
         super()
         this.isConstBnd = isConstBnd
         this.position1 = raDecToPosition({ ra: ra1, dec: dec1 })
         this.position2 = raDecToPosition({ ra: ra2, dec: dec2 })
-        this.name = name
+        this.c1 = c1
+        this.c2 = c2
     }
 
     /**
@@ -438,9 +441,8 @@ class SkyLineElement extends SkyObject {
         stopPoint.x += svs.centerX
         stopPoint.y += svs.centerY
 
-        // Have to use uppercase because new boundaries
-        // are provided in all upper-case
-        const active = svs.currentConstellation.toUpperCase() === this.name
+        const active = (svs.currentConstellation === this.c1 ||
+            svs.currentConstellation === this.c2)
             && svs.ui.has("highlight-const")
 
         const ctx = svs.ctx
