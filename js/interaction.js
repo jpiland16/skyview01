@@ -75,6 +75,10 @@
                     Quaternion.fromAxisAngle(0, 0, 1, zRotation))
                 svs.needsUpdate = true
                 break
+            case "i":
+                svs.ui.toggle("highlight-const")
+                svs.needsUpdate = true
+                break
         }
     }
 }

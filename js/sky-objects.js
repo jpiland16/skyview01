@@ -253,13 +253,14 @@ class SkyGreatCircleSegment extends SkyObject {
      * @param {number} dec2 - declination 2 in degrees
      * @param {boolean} isConstBnd - whether this is a constellation boundary
      */
-    constructor(ra1, dec1, ra2, dec2, isConstBnd = true) {
+    constructor(ra1, dec1, ra2, dec2, isConstBnd = true, name = "") {
         super()
         this.isConstBnd = isConstBnd
         this.position1 = raDecToPosition({ ra: ra1, dec: dec1 })
         this.position2 = raDecToPosition({ ra: ra2, dec: dec2 })
         const normalTemp = this.position1.crossProduct(this.position2)
         this.normal = normalTemp.scale(1 / normalTemp.length)
+        this.name = name
     }
 
     /**
@@ -376,11 +377,12 @@ class SkyLineElement extends SkyObject {
      * @param {number} dec2 - declination 2 in degrees
      * @param {boolean} isConstBnd - whether this is a constellation boundary
      */
-    constructor(ra1, dec1, ra2, dec2, isConstBnd = true) {
+    constructor(ra1, dec1, ra2, dec2, isConstBnd = true, name = "") {
         super()
         this.isConstBnd = isConstBnd
         this.position1 = raDecToPosition({ ra: ra1, dec: dec1 })
         this.position2 = raDecToPosition({ ra: ra2, dec: dec2 })
+        this.name = name
     }
 
     /**
@@ -436,12 +438,17 @@ class SkyLineElement extends SkyObject {
         stopPoint.x += svs.centerX
         stopPoint.y += svs.centerY
 
+        // Have to use uppercase because new boundaries
+        // are provided in all upper-case
+        const active = svs.currentConstellation.toUpperCase() === this.name
+            && svs.ui.has("highlight-const")
+
         const ctx = svs.ctx
         ctx.beginPath()
         ctx.moveTo(startPoint.x, startPoint.y)
         ctx.lineTo(stopPoint.x, stopPoint.y)
-        ctx.strokeStyle = svs.colors.meridianColor    
-        ctx.lineWidth = this.isConstBnd ? 3 : 2
+        ctx.strokeStyle = active ? "red" : svs.colors.meridianColor    
+        ctx.lineWidth = (this.isConstBnd ? 3 : 2) * (active ? 2 : 1)
         ctx.setLineDash(this.isConstBnd ? [2, 4] : [2, 8])
         ctx.stroke()
         ctx.setLineDash([0, 0])

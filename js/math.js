@@ -253,3 +253,74 @@ function getRegionOverlap(a, b) {
     if (start >= stop) return undefined
     return [start, stop]
 }
+
+/**
+ * Converts right ascension and declination from J2000 to B1875.
+ * Algorithm source: Practical Astronomy with a Calculator
+ * 
+ * @param {Object} raDec
+ * @param {number} raDec.ra  - right ascension in hours
+ * @param {number} raDec.dec - declination in degrees
+ */
+function precess2000to1875(raDec) {
+
+    const J2000 = 2451545
+
+    const besselianToJD = (b) => (b - 1900) * 365.242198781 + 2415020.31352
+
+    const alpha = raDec.ra / 12 * Math.PI
+    const delta = raDec.dec / 180 * Math.PI
+
+    const jdStart = besselianToJD(1875)
+    const T = (jdStart - J2000) / 365.25 / 100
+
+    const zeta_deg  = 
+        0.640_616_1 * T 
+        + 0.000_083_9 * Math.pow(T, 2)
+        + 0.000_005_0 * Math.pow(T, 3)
+    const z_deg     = 
+        0.640_616_1 * T 
+        + 0.000_304_1 * Math.pow(T, 2)
+        + 0.000_005_1 * Math.pow(T, 3)
+    const theta_deg = 
+        0.556_753_0 * T 
+        - 0.000_118_5 * Math.pow(T, 2)
+        - 0.000_011_6 * Math.pow(T, 3)
+
+    const zeta  = zeta_deg  / 180 * Math.PI
+    const z     = z_deg     / 180 * Math.PI
+    const theta = theta_deg / 180 * Math.PI
+
+    const CX = Math.cos(zeta)
+    const SX = Math.sin(zeta)
+    const CZ = Math.cos(z)
+    const SZ = Math.sin(z)
+    const CT = Math.cos(theta)
+    const ST = Math.sin(theta)
+
+    const P = [
+        [CX * CT * CZ - SX * SZ, - SX * CT * CZ - CX * SZ, - ST * CZ],
+        [CX * CT * SZ + SX * CZ, - SX * CT * SZ + CX * CZ, - ST * SZ],
+        [CX * ST,                - SX * ST,                  CT     ]
+    ]
+
+    const s = [
+        Math.cos(alpha) * Math.cos(delta),
+        Math.sin(alpha) * Math.cos(delta),
+        Math.sin(delta)
+    ]
+
+    const w = [
+        P[0][0] * s[0] + P[0][1] * s[1] + P[0][2] * s[2], 
+        P[1][0] * s[0] + P[1][1] * s[1] + P[1][2] * s[2], 
+        P[2][0] * s[0] + P[2][1] * s[1] + P[2][2] * s[2], 
+    ]
+    
+    const alpha_new = Math.atan2(w[1], w[0])
+    const delta_new = Math.asin(w[2])
+
+    return {
+        ra:  positiveModulo(alpha_new / Math.PI * 12, 24), 
+        dec: delta_new / Math.PI * 180
+    }
+}

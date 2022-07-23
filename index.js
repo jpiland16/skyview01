@@ -22,6 +22,7 @@ class SkyViewState {
         this.colorSchemes = createColorSchemes(this)
         this.colorSchemeNames = Object.getOwnPropertyNames(this.colorSchemes)
         this.setColorScheme(localStorage.getItem("colorSchemeName") || "red-grad")
+        this.currentConstellation = "constellation unknown"
 
     }
 
@@ -154,10 +155,14 @@ class SkyViewState {
      * currently positioned over.
      */
     getCurrentConstellation() {
+
+        const { ra, dec } = precess2000to1875(this.raDec)
+        // const { ra, dec } = this.raDec
+
         for (const constellationName in this.constBndLines) {
 
             const raValues = this.constBndLines[constellationName].filter((cbLine) => 
-                cbLine.containsDec(this.raDec.dec)
+                cbLine.containsDec(dec)
             ).map((cbLine) => cbLine.ra).sort()
             if (raValues.length === 0) continue;
 
@@ -171,7 +176,7 @@ class SkyViewState {
             const shiftedRaValues = raValues.map((v) =>
                 positiveModulo(v - constellationStart, 24)
             )
-            const shiftedStartPoint = positiveModulo(this.raDec.ra - constellationStart, 24)
+            const shiftedStartPoint = positiveModulo(ra - constellationStart, 24)
 
             const crossingCount = shiftedRaValues.filter((v) => v < shiftedStartPoint).length
             if (crossingCount % 2 === 1) {
@@ -186,8 +191,8 @@ class SkyViewState {
             }
         }
         if (Object.getOwnPropertyNames(this.constBndLines).length === 0) return "loading constellations..."
-        if (this.raDec.dec >=  86.5) return "UMi"
-        if (this.raDec.dec <= -82.5) return "Oct"
+        if (dec >=  86.5) return "UMi"
+        if (dec <= -82.5) return "Oct"
         return "constellation unknown"
     }
 
@@ -322,8 +327,9 @@ function loaded() {
  * @param {SkyViewState} svs
  */
 function showPosition(svs) {
-    const currentConstellation = svs.getCurrentConstellation()
-    stat(raDecToString(svs.raDec, svs.ui.has("decimal-display")) + " | " + currentConstellation)    
+    svs.currentConstellation = svs.getCurrentConstellation()
+    stat(raDecToString(svs.raDec, svs.ui.has("decimal-display")) + " | " + 
+        svs.currentConstellation)    
 }
 
 /**
@@ -352,7 +358,7 @@ function raDecToString(raDec, decimal = false) {
         const raRounded = ra.toFixed(decimalPlaces)
         const decRounded = dec.toFixed(decimalPlaces)
         const raString = raRounded.padStart(decimalPlaces + 3, "0") + "h"
-        const decString = (dec < 0 ? "-" : "+") 
+        const decString = (dec < 0 ? "" : "+") 
             + decRounded.padStart(decimalPlaces + 3, "0") + "\u00b0"
         return `RA ${raString} Dec ${decString}`
     }
