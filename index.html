@@ -35,8 +35,8 @@
                 <div id="menu-tabs">
                     <table>
                         <tr>
-                            <td id="settings" onclick="selectMenuTab(event.target)" class="selected">Settings</td>
-                            <td id="keyboard-shortcuts" onclick="selectMenuTab(event.target)">Keyboard Shortcuts</td>
+                            <td onclick="selectMenuTab(event.target)" class="selected" id="settings" >Settings</td>
+                            <td onclick="selectMenuTab(event.target)" id="keyboard-shortcuts" >Keyboard Shortcuts</td>
                         </tr>
                     </table>
                 </div>
@@ -45,7 +45,43 @@
                         Hi settings
                     </div>
                     <div id="keyboard-shortcuts-content" style="display: none">
-                        Hi
+                        <table>
+                            <tr><td>Reset all settings to default                       </td><td>shift+0</td></tr>
+                            <tr><td>Move to 00h +00&deg;                                </td><td>0      </td></tr>
+                            <tr><td>Choose next color scheme                            </td><td>shift+c</td></tr>
+                            <tr><td>Choose previous color scheme                        </td><td>shift+c</td></tr>
+                            <tr><td>Toggle visibility of all star names                 </td><td>n      </td></tr>
+                            <tr><td>Toggle visibility of crosshairs                     </td><td>h      </td></tr>
+                            <tr><td>Toggle display of star magnitude as size            </td><td>b      </td></tr>
+                            <tr><td>Toggle display of constellation boundaries          </td><td>shift+b</td></tr>
+                            <tr><td>Toggle display of star magnitude as opacity         </td><td>v      </td></tr>
+                            <tr><td>Toggle visibility of all stars                      </td><td>shift+v</td></tr>
+                            <tr><td>Toggle visibility of "globe" (RA/dec arcs)          </td><td>g      </td></tr>
+                            <tr><td>Switch between quaternion and polar control         </td><td>q      </td></tr>
+                            <tr><td>Toggle H/D:M:S with decimal for RA/dec              </td><td>r      </td></tr>
+                            <tr><td>Auto-rotate view about Polaris (play movie)         </td><td>m      </td></tr>
+                            <tr><td>Toggle visibility of constellation lines            </td><td>shift+l</td></tr>
+                            <tr><td>Rotate Polaris to be at the top of the screen       </td><td>l      </td></tr>
+                            <tr><td>Toggle highlighting of the current constellation    </td><td>i      </td></tr>
+                            <tr><td>Toggle visibility of location (RA/dec)              </td><td>w      </td></tr>
+                            <tr><td>Toggle visibility of nearest star/constellation info</td><td>e      </td></tr>
+                            <tr><td>Show more stars                                     </td><td>s      </td></tr>
+                            <tr><td>Show fewer stars                                    </td><td>a      </td></tr>
+                        </table>
+                        <h3>Movement</h3>
+                        <table>
+                            <tr><td>Rotate (RA) positive about Polaris           </td><td>o</td></tr>
+                            <tr><td>Rotate (RA) negative about Polaris           </td><td>p</td></tr>
+                            <tr><td>Rotate (dec) towards Polaris                 </td><td>f</td></tr>
+                            <tr><td>Rotate (dec) away from Polaris               </td><td>d</td></tr>
+                            <tr><td>Rotate view clockwise in screen plane        </td><td>.</td></tr>
+                            <tr><td>Rotate view counterclockwise in screen plane </td><td>,</td></tr>
+                            <tr><td>Move using the quaternion control            </td><td>(arrow keys)</td></tr>
+                            <tr><td>Zoom in                                      </td><td>z</td></tr>
+                            <tr><td>Zoom out                                     </td><td>x</td></tr>
+                            <tr><td>Move slower                                  </td><td>(shift+key)</td></tr>
+                            <tr><td>Temp. switch (polar/quaternion) mouse control</td><td>(hold ctrl)</td></tr>
+                        </table>
                     </div>
                 </div>
             </div>

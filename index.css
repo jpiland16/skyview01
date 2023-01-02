@@ -94,11 +94,12 @@ input[type=text] {
 
 #menu-modal {
     width: 75%;
+    height: 75%;
     border: 2px solid;
     padding: 10px 0px;
 }
 
-#menu-modal div#menu-tabs {
+#menu-tabs {
     width: calc(100% - 18px);
     position: relative;
     left: -1px;
@@ -106,17 +107,17 @@ input[type=text] {
     padding: 0px 10px;
 }
 
-#menu-modal table {
+#menu-tabs table {
     position: relative;
     top: 1px;
 }
 
-#menu-modal td, #menu-modal table, #menu-modal tr {
+#menu-tabs td, #menu-tabs table, #menu-tabs tr {
     border-collapse: collapse;
     border-bottom: 0px;
 }
 
-#menu-modal td {
+#menu-tabs td {
     padding: 5px 15px;
     cursor: pointer;
     border: 0px solid;
@@ -125,19 +126,46 @@ input[type=text] {
     user-select: none; /* Standard syntax */
 }
 
-#menu-modal td.selected {
+#menu-tabs td.selected {
     font-weight: bold;
     text-shadow: 0.2px 0.2px 0.5px gray;
     border: 2px solid;
     border-bottom: 0px;
 }
 
-#menu-modal td:not(.selected) {
+#menu-tabs td:not(.selected) {
     margin-top: 2px;
     padding-left: 17px;
     padding-right: 17px;
 }
 
 #menu-content {
-    padding: 10px
+    padding: 20px;
+    height: calc(100% - 40px - 18.22px);
+    overflow-y: auto;
+    display: flex;
+    justify-content: center;
+}
+
+#keyboard-shortcuts-content td {
+    padding: 5px 15px;
+    border: 2px solid;
+    border-radius: 5px;
+}
+
+
+#keyboard-shortcuts-content tr:first-of-type td:first-of-type {
+    border-top-left-radius: 15px;
+}
+
+#keyboard-shortcuts-content tr:first-of-type td:last-of-type {
+    border-top-right-radius: 15px;
+}
+
+#keyboard-shortcuts-content tr:last-of-type td:first-of-type {
+    border-bottom-left-radius: 15px;
+}
+
+#keyboard-shortcuts-content tr:last-of-type td:last-of-type {
+    border-bottom-right-radius: 15px;
 }
