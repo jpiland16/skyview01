@@ -60,14 +60,14 @@ function createColorSchemes(svs) {
 
     return {                         // BG       TEXT     LINE     MERID    PARLL    STAR     HTML
         "red-grad":    new ColorScheme("black", redGrad, "red",   redGrad, redGrad, redGrad, red   ), 
-        "grn-grad":    new ColorScheme("black", grnGrad, "green", grnGrad, grnGrad, grnGrad, green ), 
-        "blu-grad":    new ColorScheme("black", bluGrad,  blue,   bluGrad, bluGrad, bluGrad, blue  ),
-        "blk-grad":    new ColorScheme("black", whtGrad, "white", whtGrad, whtGrad, whtGrad, white ),
-        "wht-grad":    new ColorScheme("white", blkGrad, "black", blkGrad, blkGrad, blkGrad, black ), 
+        "green-grad":  new ColorScheme("black", grnGrad, "green", grnGrad, grnGrad, grnGrad, green ), 
+        "blue-grad":   new ColorScheme("black", bluGrad,  blue,   bluGrad, bluGrad, bluGrad, blue  ),
+        "black-grad":  new ColorScheme("black", whtGrad, "white", whtGrad, whtGrad, whtGrad, white ),
+        "white-grad":  new ColorScheme("white", blkGrad, "black", blkGrad, blkGrad, blkGrad, black ), 
         "red":         new ColorScheme("black", "red",   "red",   "red",   "red",   "red",   red   ),
         "green":       new ColorScheme("black", "green", "green", "green", "green", "green", green ),
         "blue":        new ColorScheme("black", blue,    blue,    blue,    blue,    blue,    blue  ),
-        "dark":        new ColorScheme("black", "white", "white", "white", "white", "white", white ),
-        "bright":      new ColorScheme("white", "black", "black", "black", "black", "black", black )
+        "black":       new ColorScheme("black", "white", "white", "white", "white", "white", white ),
+        "white":       new ColorScheme("white", "black", "black", "black", "black", "black", black )
     }
 }

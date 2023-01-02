@@ -21,7 +21,7 @@ class SkyViewState {
         this.dpr = window.devicePixelRatio || 1
         this.colorSchemes = createColorSchemes(this)
         this.colorSchemeNames = Object.getOwnPropertyNames(this.colorSchemes)
-        this.setColorScheme(localStorage.getItem("colorSchemeName") || "blk-grad")
+        this.setColorScheme(localStorage.getItem("colorSchemeName") || "black-grad")
         this.currentConstellation = "constellation unknown"
         /** @type{Star} */ this.nearestStar = undefined
 
@@ -349,6 +349,10 @@ function loaded() {
     document.addEventListener('keypress', (e) => handleKeyPress(e, svs), false)
     document.addEventListener("wheel", (e) => handleScroll(e, svs), false)
     window.addEventListener('resize', (e) => onResize(), false)
+
+    document.getElementById("menu-link").addEventListener("click", (e) => {
+        showMenu(svs)
+    }, false)
 
     onResize()
 }

@@ -19,7 +19,7 @@
                 svs.quaternion = Quaternion.identity()
                 svs.zoom = 1
                 svs.starFactor = 1.6
-                svs.setColorScheme("blk-grad")
+                svs.setColorScheme("black-grad")
                 svs.updateGradients()
                 svs.ui = UI.default()
                 svs.needsUpdate = true
@@ -165,6 +165,7 @@ function handlePressedKeys(keyStates, svs) {
         }
         if (keyStates["a"] && !keyStates["s"]) {
             svs.starFactor *= zoomScale
+            svs.starFactor = Math.max(svs.starFactor, SV_MIN_STAR_FACTOR)
             svs.needsUpdate = true
         }
         if (keyStates["s"] && !keyStates["a"]) {

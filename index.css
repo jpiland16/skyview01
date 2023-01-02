@@ -153,7 +153,6 @@ input[type=text] {
     border-radius: 5px;
 }
 
-
 #keyboard-shortcuts-content tr:first-of-type td:first-of-type {
     border-top-left-radius: 15px;
 }
@@ -168,4 +167,47 @@ input[type=text] {
 
 #keyboard-shortcuts-content tr:last-of-type td:last-of-type {
     border-bottom-right-radius: 15px;
+}
+
+#toggle-table td {
+    padding: 5px 15px;
+}
+
+.menu-checkbox {
+    border: 2px solid;
+    width: 10px;
+    height: 10px;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.menu-checkbox.checked {
+    border: 5.5px solid;
+    width: 3px;
+    height: 3px;
+}
+
+#value-table td {
+    padding: 5px 15px;
+}
+
+#value-table input, #value-table select {
+    border: 2px solid;
+    padding: 2px;
+    font-family: inherit;
+    color: inherit;
+    background-color: inherit;
+}
+
+#value-table select option {
+    color: black;
+}
+
+#value-table input {
+    text-align: right;
+    width: 100px;
+}
+
+#value-table select {
+    width: 107px;
 }
