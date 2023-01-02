@@ -211,3 +211,18 @@ input[type=text] {
 #value-table select {
     width: 107px;
 }
+
+#actions-content button {
+    color: inherit;
+    border-color: inherit;
+    border: 2px solid;
+    background-color: inherit;
+    font-family: inherit;
+    padding: 2px 10px;
+    margin: 2px 10px;
+    cursor: pointer;
+}
+
+#actions-content button:hover {
+    opacity: 0.7;
+}

@@ -1,4 +1,38 @@
 /**
+ * @param {SkyViewState} svs
+ */
+function lockToPolaris(svs) {
+    const transformedY = new Vector(0, -1, 0)
+        .transformByQuaternion(svs.quaternion).collapseToXY()
+    let zRotation = transformedY.getAngleTo(new Vector(0, -1, 0))
+    if (transformedY.x < 0) zRotation = 2 * Math.PI - zRotation
+    svs.quaternion = svs.quaternion.multiply(
+        Quaternion.fromAxisAngle(0, 0, 1, zRotation))
+    svs.needsUpdate = true
+}
+
+/**
+ * @param {SkyViewState} svs
+ */
+function resetAllSettings(svs) {
+    svs.quaternion = Quaternion.identity()
+    svs.zoom = 1
+    svs.starFactor = 1.6
+    svs.setColorScheme("black-grad")
+    svs.updateGradients()
+    svs.ui = UI.default()
+    svs.needsUpdate = true
+}
+
+/**
+ * @param {SkyViewState} svs
+ */
+function moveToZero(svs) {
+    svs.quaternion = Quaternion.identity()
+    svs.needsUpdate = true
+}
+
+/**
  * @param {KeyboardEvent} e
  * @param {SkyViewState} svs
  */
@@ -6,8 +40,7 @@
     if (svs.pointerLocked) {
         switch (e.key) {
             case "0":
-                svs.quaternion = Quaternion.identity()
-                svs.needsUpdate = true
+                moveToZero(svs)
                 break
             case "c":
                 svs.chooseNextColorScheme()
@@ -16,13 +49,7 @@
                 svs.choosePrevColorScheme()
                 break
             case ")":
-                svs.quaternion = Quaternion.identity()
-                svs.zoom = 1
-                svs.starFactor = 1.6
-                svs.setColorScheme("black-grad")
-                svs.updateGradients()
-                svs.ui = UI.default()
-                svs.needsUpdate = true
+                resetAllSettings(svs)
                 break
             case "n":
                 svs.ui.toggle("star-names")
@@ -67,13 +94,7 @@
                 svs.needsUpdate = true
                 break
             case "l":
-                const transformedY = new Vector(0, -1, 0)
-                    .transformByQuaternion(svs.quaternion).collapseToXY()
-                let zRotation = transformedY.getAngleTo(new Vector(0, -1, 0))
-                if (transformedY.x < 0) zRotation = 2 * Math.PI - zRotation
-                svs.quaternion = svs.quaternion.multiply(
-                    Quaternion.fromAxisAngle(0, 0, 1, zRotation))
-                svs.needsUpdate = true
+                lockToPolaris(svs)
                 break
             case "i":
                 svs.ui.toggle("highlight-const")

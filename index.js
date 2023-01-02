@@ -354,6 +354,19 @@ function loaded() {
         showMenu(svs)
     }, false)
 
+    document.getElementById("go-to-polaris-button" ).addEventListener("click", (e) => {
+        lockToPolaris(svs)
+        hideMenu()
+    }, false)
+    document.getElementById("move-to-zero-button"  ).addEventListener("click", (e) => {
+        moveToZero(svs)
+        hideMenu()
+    }, false)
+    document.getElementById("reset-settings-button").addEventListener("click", (e) => {
+        resetAllSettings(svs)
+        hideMenu()
+    }, false)
+
     onResize()
 }
 

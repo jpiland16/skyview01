@@ -35,8 +35,9 @@
                 <div id="menu-tabs">
                     <table>
                         <tr>
-                            <td onclick="selectMenuTab(event.target)" class="selected" id="settings" >Settings</td>
-                            <td onclick="selectMenuTab(event.target)" id="keyboard-shortcuts" >Keyboard Shortcuts</td>
+                            <td onclick="selectMenuTab(event.target)" class="selected" id="settings">Settings</td>
+                            <td onclick="selectMenuTab(event.target)" id="keyboard-shortcuts">Keyboard Shortcuts</td>
+                            <td onclick="selectMenuTab(event.target)" id="actions">Actions</td>
                         </tr>
                     </table>
                 </div>
@@ -82,6 +83,11 @@
                             <tr><td>Move slower                                  </td><td>(shift+key)</td></tr>
                             <tr><td>Temp. switch (polar/quaternion) mouse control</td><td>(hold ctrl)</td></tr>
                         </table>
+                    </div>
+                    <div id="actions-content" style="display: none;">
+                        <button id="go-to-polaris-button" >Move Polaris to top of screen</button>
+                        <button id="move-to-zero-button"  >Move to 00h +00&deg;</button>
+                        <button id="reset-settings-button">Reset all settings</button>
                     </div>
                 </div>
             </div>
