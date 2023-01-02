@@ -198,10 +198,10 @@ function onMouseMove(svs, keyStates, e) {
     if (svs.pointerLocked) {
 
         let controlScale = 1
-        if (keyStates["shift"]) controlScale = SV_CONTROL_SCALE
+        if (e.shiftKey) controlScale = SV_CONTROL_SCALE
 
         const flipControlStyle = svs.ui.has("reversed-control")
-        const ctrlKeyHeld = keyStates["control"] || keyStates["meta"]
+        const ctrlKeyHeld = e.ctrlKey || e.metaKey
 
         if ((ctrlKeyHeld && !flipControlStyle) || (!ctrlKeyHeld && flipControlStyle )) {
 

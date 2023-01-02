@@ -273,7 +273,7 @@ function getRaDecDistance(raDec1, raDec2) {
 
 /**
  * Converts right ascension and declination from J2000 to B1875.
- * Algorithm source: Practical Astronomy with a Calculator
+ * Algorithm source: Practical Astronomy with your Calculator
  * 
  * @param {Object} raDec
  * @param {number} raDec.ra  - right ascension in hours

@@ -113,6 +113,10 @@ class SkyViewState {
             this.colors.bgColor
         document.getElementById("extra").style.backgroundColor = 
             this.colors.bgColor
+        document.getElementById("menu-container").style.backgroundColor = 
+            (this.colors.bgColor === "black") ? "#000000af" : "#ffffffcf"
+        document.getElementById("menu-modal").style.backgroundColor = 
+            this.colors.bgColor
         this.needsUpdate = true
     }
 
@@ -274,7 +278,7 @@ function loaded() {
     const ctx = canvas.getContext("2d")
     const svs = new SkyViewState(ctx)
 
-    const keyStates = {}
+    let keyStates = {}
 
     createMeridians(svs)
     createParallels(svs)
@@ -322,6 +326,10 @@ function loaded() {
 
     document.addEventListener('mousemove', (e) => {
         onMouseMove(svs, keyStates, e)
+    }, false)
+
+    window.addEventListener('blur', (e) => {
+        keyStates = {} // Pretend that the user has released all the keys.
     }, false)
 
     /**

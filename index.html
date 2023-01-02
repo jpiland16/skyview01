@@ -7,12 +7,14 @@
         <title>Interactive Sky Map</title>
         <script src="index.js"></script>
         <script src="js/math.js"></script>
+        <script src="js/menu.js"></script>
         <script src="js/color-schemes.js"></script>
         <script src="js/constants.js"></script>
         <script src="js/databases.js"></script>
         <script src="js/sky-objects.js"></script>
         <script src="js/interaction.js"></script>
         <script src="js/initialization.js"></script>
+        <script src="js/solar-system.js"></script>
     </head>
     <body onload="loaded()">
         <canvas id="sky"></canvas>
@@ -20,6 +22,33 @@
         <div id="extra">
             <div id="extra1" class="clickable">loading...</div>
             <div id="extra2" class="clickable"> </div>
+            <div id="timeAndDate" style="display: none;">
+                <div class="inline">Date:<input id="date" type="text"></div> 
+                <div class="inline">Time:<input id="time" type="text"></div>
+            </div>
+        </div>
+        <div id="menu-link" onclick="showMenu()">
+            MENU
+        </div>
+        <div id="menu-container" style="display: none" onmousedown="hideMenu()">
+            <div id=menu-modal onmousedown="event.stopPropagation()">
+                <div id="menu-tabs">
+                    <table>
+                        <tr>
+                            <td id="settings" onclick="selectMenuTab(event.target)" class="selected">Settings</td>
+                            <td id="keyboard-shortcuts" onclick="selectMenuTab(event.target)">Keyboard Shortcuts</td>
+                        </tr>
+                    </table>
+                </div>
+                <div id="menu-content">
+                    <div id="settings-content">
+                        Hi settings
+                    </div>
+                    <div id="keyboard-shortcuts-content" style="display: none">
+                        Hi
+                    </div>
+                </div>
+            </div>
         </div>
     </body>
 </html>

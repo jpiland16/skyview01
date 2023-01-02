@@ -37,7 +37,7 @@ class CrossHairs extends SkyObject {
         ctx.moveTo(xCenter + SV_CROSSHAIR_SPACE, yCenter)
         ctx.lineTo(xCenter + SV_CROSSHAIR_SIZE, yCenter)
         ctx.strokeStyle = svs.pointerLocked ? "red" : "gray"
-        ctx.lineWidth = 0.5
+        ctx.lineWidth = 1
         ctx.stroke()
     }
 }
