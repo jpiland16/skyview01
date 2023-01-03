@@ -321,23 +321,45 @@ function loaded() {
         }
     };
 
-    /** @type {Touch | undefined} */ let lastTouch = undefined;
+    /** @type {Touch | undefined} */ let lastTouch1 = undefined;
+    /** @type {Touch | undefined} */ let lastTouch2 = undefined;
 
     canvas.addEventListener("touchmove", (e) => {
-        const newTouch = e.touches[0]
-        if (lastTouch) {
-            const movementX = newTouch.clientX - lastTouch.clientX
-            const movementY = newTouch.clientY - lastTouch.clientY
-            lastTouch = newTouch
+        e.preventDefault()
+        const newTouch1 = e.touches[0]
+        if (e.touches.length > 1) {
+            const newTouch2 = e.touches[1]
+            if (lastTouch1 && lastTouch2) {
+                const lastSeparationAmount = new Vector(
+                    lastTouch1.clientX - lastTouch2.clientX, 
+                    lastTouch1.clientY - lastTouch2.clientY, 
+                    0).length
+                const newSeparationAmount = new Vector(
+                    newTouch1.clientX - newTouch2.clientX, 
+                    newTouch1.clientY - newTouch2.clientY, 
+                    0).length
+                svs.zoom *= (newSeparationAmount / lastSeparationAmount)
+                svs.zoom = Math.max(SV_MIN_ZOOM, svs.zoom)
+                svs.needsUpdate = true
+            }
+            lastTouch1 = newTouch1
+            lastTouch2 = newTouch2
+        }
+
+        if (lastTouch1) {
+            const movementX = newTouch1.clientX - lastTouch1.clientX
+            const movementY = newTouch1.clientY - lastTouch1.clientY
+            lastTouch1 = newTouch1
             moveView( - movementX, - movementY, svs, 
                 svs.ui.has("reversed-control"), 1)
-        } else {
-            lastTouch = newTouch
         }
+        lastTouch1 = newTouch1
+
     }, false)
 
     canvas.addEventListener("touchend", (e) => {
-        lastTouch = undefined
+        lastTouch1 = undefined
+        lastTouch2 = undefined
     }, false)
 
     document.addEventListener('pointerlockchange', (e) => {
