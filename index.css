@@ -96,7 +96,9 @@ input[type=text] {
     width: 75%;
     height: 75%;
     border: 2px solid;
-    padding: 10px 0px;
+    padding: 10px 0px 0px 0px;
+    display: flex;
+    flex-direction: column;
 }
 
 #menu-tabs {
@@ -105,6 +107,8 @@ input[type=text] {
     left: -1px;
     border-bottom: 2px solid;
     padding: 0px 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
 }
 
 #menu-tabs table {
@@ -124,6 +128,7 @@ input[type=text] {
     -webkit-user-select: none; /* Safari */
     -ms-user-select: none; /* IE 10 and IE 11 */
     user-select: none; /* Standard syntax */
+    text-align: center;
 }
 
 #menu-tabs td.selected {
@@ -141,10 +146,15 @@ input[type=text] {
 
 #menu-content {
     padding: 20px;
-    height: calc(100% - 40px - 18.22px);
+    height: 100%;
     overflow-y: auto;
     display: flex;
     justify-content: center;
+    width: calc(100% - 40px);
+}
+
+#keyboard-shortcuts-content {
+    max-width: 100%;
 }
 
 #keyboard-shortcuts-content td {
@@ -167,6 +177,10 @@ input[type=text] {
 
 #keyboard-shortcuts-content tr:last-of-type td:last-of-type {
     border-bottom-right-radius: 15px;
+}
+
+#settings-content {
+    max-width: 100%;
 }
 
 #toggle-table td {
@@ -210,6 +224,10 @@ input[type=text] {
 
 #value-table select {
     width: 107px;
+}
+
+#actions-content {
+    text-align: center;
 }
 
 #actions-content button {
