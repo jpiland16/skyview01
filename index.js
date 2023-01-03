@@ -309,15 +309,36 @@ function loaded() {
         svs.needsUpdate = true
     }
 
-    canvas.onclick = function() {
+    canvas.onclick = function(e) {
+        if (e.pointerType === "mouse") {
         canvas.requestPointerLock();
-        window.setTimeout(() => {
-            if (document.pointerLockElement !== canvas) {
-                // Occurs if the user clicks too quickly after exiting lock
-                alert("Pointer not captured - click again to begin navigation")
-            }
-        }, 100)
+            window.setTimeout(() => {
+                if (document.pointerLockElement !== canvas) {
+                    // Occurs if the user clicks too quickly after exiting lock
+                    alert("Pointer not captured - click again to begin navigation")
+                }
+            }, 100)
+        }
     };
+
+    /** @type {Touch | undefined} */ let lastTouch = undefined;
+
+    canvas.addEventListener("touchmove", (e) => {
+        const newTouch = e.touches[0]
+        if (lastTouch) {
+            const movementX = newTouch.clientX - lastTouch.clientX
+            const movementY = newTouch.clientY - lastTouch.clientY
+            lastTouch = newTouch
+            moveView( - movementX, - movementY, svs, 
+                svs.ui.has("reversed-control"), 1)
+        } else {
+            lastTouch = newTouch
+        }
+    }, false)
+
+    canvas.addEventListener("touchend", (e) => {
+        lastTouch = undefined
+    }, false)
 
     document.addEventListener('pointerlockchange', (e) => {
         svs.pointerLocked = (document.pointerLockElement === canvas)

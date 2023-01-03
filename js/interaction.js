@@ -225,55 +225,62 @@ function onMouseMove(svs, keyStates, e) {
         const flipControlStyle = svs.ui.has("reversed-control")
         const ctrlKeyHeld = e.ctrlKey || e.metaKey
 
-        if ((ctrlKeyHeld && !flipControlStyle) || (!ctrlKeyHeld && flipControlStyle )) {
+        const controlByQuaternion = ((ctrlKeyHeld && !flipControlStyle) || (!ctrlKeyHeld && flipControlStyle ));
 
-            const xRotationQuaternion = Quaternion.fromAxisAngle(
-                1, 0, 0, e.movementY / SV_MOVEMENT_SCALE / svs.zoom /
-                    controlScale)
-            const yRotationQuaternion = Quaternion.fromAxisAngle(
-                0, 1, 0, - e.movementX / SV_MOVEMENT_SCALE / svs.zoom /
-                    controlScale)
-    
-            svs.quaternion = svs.quaternion.multiply(
-                xRotationQuaternion).multiply(yRotationQuaternion)
-            svs.needsUpdate = true
-
-        } else {
-            
-            const movementVector = new Vector(e.movementX, e.movementY, 0)
-            const transformedY = new Vector(0, -1, 0)
-                .transformByQuaternion(svs.quaternion).collapseToXY()
-            let zRotation = transformedY.getAngleTo(new Vector(0, -1, 0))
-
-            if (transformedY.x < 0) zRotation = 2 * Math.PI - zRotation
-
-            const rotatedMovement = movementVector.transformByQuaternion(
-                Quaternion.fromAxisAngle(0, 0, 1, zRotation))
-
-            xRot = rotatedMovement.x
-            yRot = rotatedMovement.y
-
-            // Increase rotation speed near the poles, otherwise it looks slow
-            const currentDec = svs.raDec.dec
-            const polarMovementScale = 2 - Math.cos(currentDec * Math.PI / 180)
-
-            if (yRot > 0) {
-                rotatePositiveDec(svs, yRot / SV_MOVEMENT_SCALE / svs.zoom /
-                    controlScale)
-            } else {
-                rotateNegativeDec(svs, - yRot / SV_MOVEMENT_SCALE / svs.zoom /
-                    controlScale)
-            }
-
-            if (xRot > 0) {
-                rotatePositiveRa(svs, xRot / SV_MOVEMENT_SCALE / svs.zoom /
-                    controlScale * polarMovementScale)
-            } else {
-                rotateNegativeRa(svs, - xRot / SV_MOVEMENT_SCALE / svs.zoom /
-                    controlScale * polarMovementScale)
-            }
-        }
+        moveView(e.movementX, e.movementY, svs, controlByQuaternion, controlScale)
         
+    }
+
+}
+
+
+/**
+ * @param {number} amountX
+ * @param {number} amountY
+ * @param {SkyViewState} svs
+ * @param {boolean} controlByQuaternion
+ * @param {number} controlScale
+ */
+function moveView(amountX, amountY, svs, controlByQuaternion, controlScale) {
+
+    if (controlByQuaternion) {
+
+        moveViaQuaternion(amountX / controlScale, amountY / controlScale, svs)
+
+    } else {
+        
+        const movementVector = new Vector(amountX, amountY, 0)
+        const transformedY = new Vector(0, -1, 0)
+            .transformByQuaternion(svs.quaternion).collapseToXY()
+        let zRotation = transformedY.getAngleTo(new Vector(0, -1, 0))
+
+        if (transformedY.x < 0) zRotation = 2 * Math.PI - zRotation
+
+        const rotatedMovement = movementVector.transformByQuaternion(
+            Quaternion.fromAxisAngle(0, 0, 1, zRotation))
+
+        xRot = rotatedMovement.x
+        yRot = rotatedMovement.y
+
+        // Increase rotation speed near the poles, otherwise it looks slow
+        const currentDec = svs.raDec.dec
+        const polarMovementScale = 2 - Math.cos(currentDec * Math.PI / 180)
+
+        if (yRot > 0) {
+            rotatePositiveDec(svs, yRot / SV_MOVEMENT_SCALE / svs.zoom /
+                controlScale)
+        } else {
+            rotateNegativeDec(svs, - yRot / SV_MOVEMENT_SCALE / svs.zoom /
+                controlScale)
+        }
+
+        if (xRot > 0) {
+            rotatePositiveRa(svs, xRot / SV_MOVEMENT_SCALE / svs.zoom /
+                controlScale * polarMovementScale)
+        } else {
+            rotateNegativeRa(svs, - xRot / SV_MOVEMENT_SCALE / svs.zoom /
+                controlScale * polarMovementScale)
+        }
     }
 
 }
@@ -340,5 +347,23 @@ function rotateNegativeDec(svs, scale) {
         newXAxis.x, newXAxis.y, newXAxis.z, - rot)
     svs.quaternion = svs.quaternion.premultiply(decRotationQuaternion)
     svs.needsUpdate = true
+}
+
+/**
+ * @param {number} amountX
+ * @param {number} amountY
+ * @param {SkyViewState} svs
+ */
+function moveViaQuaternion(amountX, amountY, svs) {
+
+    const xRotationQuaternion = Quaternion.fromAxisAngle(
+        1, 0, 0, amountY / SV_MOVEMENT_SCALE / svs.zoom)
+    const yRotationQuaternion = Quaternion.fromAxisAngle(
+        0, 1, 0, - amountX / SV_MOVEMENT_SCALE / svs.zoom)
+
+    svs.quaternion = svs.quaternion.multiply(
+        xRotationQuaternion).multiply(yRotationQuaternion)
+    svs.needsUpdate = true
+
 }
 
