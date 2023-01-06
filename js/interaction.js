@@ -121,16 +121,10 @@ function handlePressedKeys(keyStates, svs) {
         let scale = 1 / SV_KEY_MOVEMENT_SCALE / svs.zoom
         if (keyStates["shift"]) scale /= SV_CONTROL_SCALE
         if (keyStates[","] && !keyStates["."]) {
-            const zRotationQuaternion = Quaternion.fromAxisAngle(
-                0, 0, 1, scale * svs.zoom) // Still rotate at a normal speed
-            svs.quaternion = svs.quaternion.multiply(zRotationQuaternion)
-            svs.needsUpdate = true
+            rotateZ(svs, scale * svs.zoom)
         }  
         if (keyStates["."] && !keyStates[","]) {
-            const zRotationQuaternion = Quaternion.fromAxisAngle(
-                0, 0, 1, - scale * svs.zoom) // Still rotate at a normal speed
-            svs.quaternion = svs.quaternion.multiply(zRotationQuaternion)
-            svs.needsUpdate = true
+            rotateZ(svs, - scale * svs.zoom)
         }
         if (keyStates["o"] && !keyStates["p"]) {
             rotatePositiveRa(svs, scale)
@@ -365,5 +359,18 @@ function moveViaQuaternion(amountX, amountY, svs) {
         xRotationQuaternion).multiply(yRotationQuaternion)
     svs.needsUpdate = true
 
+}
+
+/**
+ * Rotate the view in the plane of the screen.
+ * 
+ * @param {SkyViewState} svs
+ * @param {number} angleRadians
+ */
+function rotateZ(svs, angleRadians) {
+    const zRotationQuaternion = Quaternion.fromAxisAngle(
+        0, 0, 1, angleRadians) // Still rotate at a normal speed
+    svs.quaternion = svs.quaternion.multiply(zRotationQuaternion)
+    svs.needsUpdate = true
 }
 
